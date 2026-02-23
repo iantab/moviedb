@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useMovieSearch } from "./hooks/useMovieSearch";
 import { SearchBar } from "./components/SearchBar"; // updated: onSearch prop
 import { MovieCard } from "./components/MovieCard";
@@ -8,7 +8,9 @@ import type { MediaItem, MediaType } from "./types/tmdb";
 import "./App.css";
 
 function App() {
-  const { results, loading, error, search, clear } = useMovieSearch();
+  const { results, loading, error, search, clear, cancel } = useMovieSearch();
+
+  useEffect(() => cancel, [cancel]);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("movie");
   const [query, setQuery] = useState("");
@@ -26,16 +28,22 @@ function App() {
 
   const handleSearch = useCallback(() => {
     if (query.trim()) {
+      setSelectedItem(null);
       search(query, mediaType);
     }
   }, [query, mediaType, search]);
 
-  const handleTypeChange = (type: MediaType) => {
-    setMediaType(type);
-    setSelectedItem(null);
-    setQuery("");
-    clear();
-  };
+  const handleTypeChange = useCallback(
+    (type: MediaType) => {
+      setMediaType(type);
+      setSelectedItem(null);
+      setQuery("");
+      clear();
+    },
+    [clear],
+  );
+
+  const handleClose = useCallback(() => setSelectedItem(null), []);
 
   const placeholder =
     mediaType === "movie" ? "Search for a movie..." : "Search for a TV show...";
@@ -89,7 +97,7 @@ function App() {
           <MovieDetail
             item={selectedItem}
             mediaType={mediaType}
-            onClose={() => setSelectedItem(null)}
+            onClose={handleClose}
           />
         )}
       </main>

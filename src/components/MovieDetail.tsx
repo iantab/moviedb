@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import type { MediaItem, MediaType } from "../types/tmdb";
 import { getTitle, getReleaseYear, isTvShow } from "../types/tmdb";
 import { IMAGE_BASE_URL } from "../services/tmdb";
@@ -37,30 +37,44 @@ export function MovieDetail({ item, mediaType, onClose }: Props) {
     ? `${IMAGE_BASE_URL}/w342${item.poster_path}`
     : null;
 
-  const availableCountries = data
-    ? Object.keys(data.results).filter((code) => {
-        const p = data.results[code];
-        return p.flatrate?.length || p.free?.length || p.ads?.length;
-      })
-    : [];
+  const availableCountries = useMemo(
+    () =>
+      data
+        ? Object.keys(data.results).filter((code) => {
+            const p = data.results[code];
+            return p.flatrate?.length || p.free?.length || p.ads?.length;
+          })
+        : [],
+    [data],
+  );
 
-  const netflixCountries = data
-    ? Object.keys(data.results).filter((code) =>
-        data.results[code].flatrate?.some((p) => p.provider_id === NETFLIX_ID),
-      )
-    : [];
+  const netflixCountries = useMemo(
+    () =>
+      data
+        ? Object.keys(data.results).filter((code) =>
+            data.results[code].flatrate?.some(
+              (p) => p.provider_id === NETFLIX_ID,
+            ),
+          )
+        : [],
+    [data],
+  );
 
-  const displayedCountries = netflixOnly
-    ? availableCountries.filter((c) => netflixCountries.includes(c))
-    : availableCountries;
+  const displayedCountries = useMemo(
+    () =>
+      netflixOnly
+        ? availableCountries.filter((c) => netflixCountries.includes(c))
+        : availableCountries,
+    [netflixOnly, availableCountries, netflixCountries],
+  );
 
   const countryProviders =
     selectedCountry && data ? data.results[selectedCountry] : null;
 
-  const handleNetflixToggle = () => {
+  const handleNetflixToggle = useCallback(() => {
     setNetflixOnly((prev) => !prev);
     setSelectedCountry(null);
-  };
+  }, []);
 
   const noDataLabel = isTvShow(item)
     ? "No streaming data available for this show."
@@ -85,7 +99,12 @@ export function MovieDetail({ item, mediaType, onClose }: Props) {
       <div className="movie-detail__content">
         <div className="movie-detail__header">
           {posterUrl && (
-            <img src={posterUrl} alt={title} className="movie-detail__poster" />
+            <img
+              src={posterUrl}
+              alt={title}
+              className="movie-detail__poster"
+              loading="lazy"
+            />
           )}
           <div className="movie-detail__meta">
             <h2 className="movie-detail__title">{title}</h2>
