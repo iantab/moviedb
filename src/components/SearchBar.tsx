@@ -1,19 +1,13 @@
-import { type KeyboardEvent, useReducer, useRef, useEffect } from "react";
+import { useReducer, useRef, useEffect } from "react";
+import type { KeyboardEvent } from "react";
 import type { MediaItem } from "../types/tmdb";
-import { getTitle, getReleaseYear } from "../types/tmdb";
-
-export function getSuggestionMeta(item: MediaItem): string {
-  const year = getReleaseYear(item);
-  const countries = item.origin_country ?? [];
-  const country =
-    countries.length > 0
-      ? countries[0]
-      : (item.original_language?.toUpperCase() ?? "");
-  const parts: string[] = [];
-  if (year && year !== "N/A") parts.push(year);
-  if (country) parts.push(country);
-  return parts.join(" · ");
-}
+import { getTitle } from "../types/tmdb";
+import { getSuggestionMeta } from "./searchBarUtils";
+import {
+  searchBarReducer,
+  type SearchBarState,
+  type SearchBarAction,
+} from "./searchBarReducer";
 
 interface Props {
   query: string;
@@ -23,58 +17,6 @@ interface Props {
   suggestions: MediaItem[];
   loading: boolean;
   placeholder: string;
-}
-
-interface State {
-  activeIndex: number;
-  dismissed: boolean;
-  justSelected: boolean;
-  lastSuggestions: MediaItem[];
-}
-
-type Action =
-  | { type: "NEW_SUGGESTIONS"; suggestions: MediaItem[] }
-  | { type: "DISMISS" }
-  | { type: "FOCUS" }
-  | { type: "ARROW_DOWN"; max: number }
-  | { type: "ARROW_UP" }
-  | { type: "SELECT" };
-
-export function searchBarReducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "NEW_SUGGESTIONS":
-      if (action.suggestions === state.lastSuggestions) return state;
-      // If the user just selected an item, absorb the follow-up suggestions
-      // change without reopening the dropdown.
-      if (state.justSelected) {
-        return {
-          ...state,
-          justSelected: false,
-          lastSuggestions: action.suggestions,
-        };
-      }
-      return {
-        ...state,
-        activeIndex: -1,
-        dismissed: false,
-        lastSuggestions: action.suggestions,
-      };
-    case "DISMISS":
-      return { ...state, dismissed: true };
-    case "FOCUS":
-      return { ...state, dismissed: false, justSelected: false };
-    case "ARROW_DOWN":
-      return {
-        ...state,
-        activeIndex: Math.min(state.activeIndex + 1, action.max),
-      };
-    case "ARROW_UP":
-      return { ...state, activeIndex: Math.max(state.activeIndex - 1, -1) };
-    case "SELECT":
-      return { ...state, dismissed: true, activeIndex: -1, justSelected: true };
-    default:
-      return state;
-  }
 }
 
 export function SearchBar({
@@ -91,19 +33,20 @@ export function SearchBar({
     dismissed: false,
     justSelected: false,
     lastSuggestions: suggestions,
-  });
+  } satisfies SearchBarState);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync new suggestions into the reducer (replaces the old useEffect)
   if (suggestions !== state.lastSuggestions) {
-    dispatch({ type: "NEW_SUGGESTIONS", suggestions });
+    dispatch({
+      type: "NEW_SUGGESTIONS",
+      suggestions,
+    } satisfies SearchBarAction);
   }
 
   const open =
     !state.dismissed && suggestions.length > 0 && query.trim().length > 0;
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
