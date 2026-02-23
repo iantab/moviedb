@@ -39,12 +39,6 @@ export function getReleaseYear(item: MediaItem): string {
   return date ? date.slice(0, 4) : "N/A";
 }
 
-export interface MovieSearchResult {
-  results: Movie[];
-  total_results: number;
-  total_pages: number;
-}
-
 export interface WatchProvider {
   logo_path: string;
   provider_id: number;

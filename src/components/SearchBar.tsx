@@ -1,8 +1,9 @@
-import { useRef, useEffect } from "react";
+import type { KeyboardEvent } from "react";
 
 interface Props {
   query: string;
   onQueryChange: (q: string) => void;
+  onSearch: () => void;
   loading: boolean;
   placeholder: string;
 }
@@ -10,20 +11,13 @@ interface Props {
 export function SearchBar({
   query,
   onQueryChange,
+  onSearch,
   loading,
   placeholder,
 }: Props) {
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      onQueryChange(query);
-    }, 400);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, onQueryChange]);
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") onSearch();
+  };
 
   return (
     <div className="search-bar">
@@ -32,9 +26,17 @@ export function SearchBar({
         placeholder={placeholder}
         value={query}
         onChange={(e) => onQueryChange(e.target.value)}
+        onKeyDown={handleKeyDown}
         className="search-input"
       />
-      {loading && <span className="search-spinner" />}
+      <button
+        className="search-btn"
+        onClick={onSearch}
+        disabled={!query.trim() || loading}
+        aria-label="Search"
+      >
+        {loading ? <span className="search-spinner" /> : "Search"}
+      </button>
     </div>
   );
 }

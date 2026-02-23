@@ -20,4 +20,34 @@ export default defineConfig({
       config.tmdb.image_base_url,
     ),
   },
+  server: {
+    proxy: {
+      "/api/tmdb": {
+        target: "https://api.themoviedb.org/3",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/tmdb/, ""),
+        headers: {
+          Authorization: `Bearer ${config.tmdb.api_key}`,
+          Accept: "application/json",
+        },
+        configure: (proxy) => {
+          proxy.on("proxyReq", (_proxyReq, req) => {
+            console.log(`\x1b[35m[TMDB] ▶ ${req.method} ${req.url}\x1b[0m`);
+          });
+          proxy.on("proxyRes", (proxyRes, req) => {
+            const ok = proxyRes.statusCode && proxyRes.statusCode < 400;
+            const color = ok ? "\x1b[32m" : "\x1b[31m";
+            console.log(
+              `${color}[TMDB] ${proxyRes.statusCode} ${req.url}\x1b[0m`,
+            );
+          });
+          proxy.on("error", (err, req) => {
+            console.error(
+              `\x1b[31m[TMDB] ❌ ERROR ${req.url} — ${err.message}\x1b[0m`,
+            );
+          });
+        },
+      },
+    },
+  },
 });

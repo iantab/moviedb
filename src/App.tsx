@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useMovieSearch } from "./hooks/useMovieSearch";
-import { SearchBar } from "./components/SearchBar";
+import { SearchBar } from "./components/SearchBar"; // updated: onSearch prop
 import { MovieCard } from "./components/MovieCard";
 import { MovieDetail } from "./components/MovieDetail";
 import { MediaToggle } from "./components/MediaToggle";
@@ -13,13 +13,18 @@ function App() {
   const [mediaType, setMediaType] = useState<MediaType>("movie");
   const [query, setQuery] = useState("");
 
-  const handleQueryChange = useCallback((q: string) => {
-    setQuery(q);
-    if (!q.trim()) setSelectedItem(null);
-  }, []);
+  const handleQueryChange = useCallback(
+    (q: string) => {
+      setQuery(q);
+      if (!q.trim()) {
+        setSelectedItem(null);
+        clear();
+      }
+    },
+    [clear],
+  );
 
-  // Trigger search whenever query or mediaType changes
-  useEffect(() => {
+  const handleSearch = useCallback(() => {
     if (query.trim()) {
       search(query, mediaType);
     }
@@ -52,6 +57,7 @@ function App() {
         <SearchBar
           query={query}
           onQueryChange={handleQueryChange}
+          onSearch={handleSearch}
           loading={loading}
           placeholder={placeholder}
         />
