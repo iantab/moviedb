@@ -4,6 +4,7 @@ import { IMAGE_BASE_URL } from "../services/tmdb";
 import { useWatchProviders } from "../hooks/useWatchProviders";
 import { CountrySelector } from "./CountrySelector";
 import { ProviderList } from "./ProviderList";
+import { COUNTRY_NAMES } from "../utils/countryNames";
 
 const NETFLIX_ID = 8;
 
@@ -133,7 +134,10 @@ export function MovieDetail({ movie, onClose }: Props) {
               {countryProviders && (
                 <div className="movie-detail__providers">
                   <h3 className="movie-detail__section-title">
-                    📺 Services in {selectedCountry}
+                    📺 Services in{" "}
+                    {selectedCountry
+                      ? (COUNTRY_NAMES[selectedCountry] ?? selectedCountry)
+                      : ""}
                   </h3>
                   <ProviderList
                     countryCode={selectedCountry!}
