@@ -7,7 +7,11 @@ import { getCached, setCached } from "../../utils/cache";
 import tmdbClient from "../../services/tmdb";
 import type { WatchProvidersResult } from "../../types/tmdb";
 
-jest.mock("../../services/tmdb");
+jest.mock("../../services/tmdb", () => ({
+  __esModule: true,
+  default: { get: jest.fn() },
+  IMAGE_BASE_URL: "https://img.tmdb.org",
+}));
 
 jest.mock("../../utils/cache", () => ({
   getCached: jest.fn(),

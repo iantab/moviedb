@@ -1,4 +1,5 @@
-import { getSuggestionMeta, searchBarReducer } from "../components/SearchBar";
+import { getSuggestionMeta } from "../components/searchBarUtils";
+import { searchBarReducer } from "../components/searchBarReducer";
 import type { Movie, TvShow, MediaItem } from "../types/tmdb";
 
 // ── fixtures ──────────────────────────────────────────────────────────────────
@@ -199,8 +200,7 @@ describe("searchBarReducer", () => {
   describe("unknown action (default branch)", () => {
     it("returns state unchanged", () => {
       const state = makeState();
-      // @ts-expect-error testing unknown action type
-      const next = searchBarReducer(state, { type: "UNKNOWN" });
+      const next = searchBarReducer(state, { type: "UNKNOWN" } as never);
       expect(next).toBe(state);
     });
   });
