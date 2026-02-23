@@ -1,20 +1,21 @@
 # 🎬 MovieStream
 
-A React + TypeScript app that lets you search for movies and find where to stream them around the world, powered by the [TMDB API](https://www.themoviedb.org/).
+A React + TypeScript app that lets you search for movies and TV shows and find where to stream them around the world, powered by the [TMDB API](https://www.themoviedb.org/).
 
 ## Features
 
-- 🔍 **Movie search** — search for any movie with live debounced results
-- 🌍 **Streaming availability** — see every country where a movie is available to stream
+- 🔍 **Movie & TV search** — search for any movie or TV show with live debounced results
+- 🎬📺 **Media type toggle** — switch between Movies and TV Shows mode; the search bar placeholder updates accordingly
+- 🌍 **Streaming availability** — see every country where a title is available to stream (rent/buy excluded)
 - 📺 **Provider breakdown** — click a country to see which streaming services carry it (Netflix, Disney+, etc.), grouped by Stream / Free / Free with Ads
-- 🔴 **Netflix filter** — one-click button to highlight (or filter to) only the countries where the movie is on Netflix
+- 🔴 **Netflix filter** — one-click button to highlight or filter to only the countries where the title is on Netflix
 
 ## Tech Stack
 
 - [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - [Vite](https://vite.dev/) for bundling and dev server
 - [Axios](https://axios-http.com/) for API requests
-- [TMDB API](https://developer.themoviedb.org/docs) for movie data and streaming providers
+- [TMDB API](https://developer.themoviedb.org/docs) for movie/TV data and streaming providers
 
 ## Getting Started
 
@@ -36,6 +37,8 @@ tmdb:
 ```
 
 You can get a free API read access token from [TMDB settings](https://www.themoviedb.org/settings/api).
+
+> The key should be the **Bearer token** (JWT), not the short v3 API key.
 
 ### 3. Run the dev server
 

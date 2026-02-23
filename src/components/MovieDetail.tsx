@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { Movie } from "../types/tmdb";
+import type { MediaItem, MediaType } from "../types/tmdb";
+import { getTitle, getReleaseYear, isTvShow } from "../types/tmdb";
 import { IMAGE_BASE_URL } from "../services/tmdb";
 import { useWatchProviders } from "../hooks/useWatchProviders";
 import { CountrySelector } from "./CountrySelector";
@@ -9,20 +10,24 @@ import { COUNTRY_NAMES } from "../utils/countryNames";
 const NETFLIX_ID = 8;
 
 interface Props {
-  movie: Movie;
+  item: MediaItem;
+  mediaType: MediaType;
   onClose: () => void;
 }
 
-export function MovieDetail({ movie, onClose }: Props) {
+export function MovieDetail({ item, mediaType, onClose }: Props) {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [netflixOnly, setNetflixOnly] = useState(false);
-  const { data, loading, error } = useWatchProviders(movie.id);
+  const { data, loading, error } = useWatchProviders(item.id, mediaType);
 
-  const backdropUrl = movie.backdrop_path
-    ? `${IMAGE_BASE_URL}/w780${movie.backdrop_path}`
+  const title = getTitle(item);
+  const year = getReleaseYear(item);
+
+  const backdropUrl = item.backdrop_path
+    ? `${IMAGE_BASE_URL}/w780${item.backdrop_path}`
     : null;
-  const posterUrl = movie.poster_path
-    ? `${IMAGE_BASE_URL}/w342${movie.poster_path}`
+  const posterUrl = item.poster_path
+    ? `${IMAGE_BASE_URL}/w342${item.poster_path}`
     : null;
 
   const availableCountries = data
@@ -50,6 +55,10 @@ export function MovieDetail({ movie, onClose }: Props) {
     setSelectedCountry(null);
   };
 
+  const noDataLabel = isTvShow(item)
+    ? "No streaming data available for this show."
+    : "No streaming data available for this movie.";
+
   return (
     <div className="movie-detail">
       {backdropUrl && (
@@ -69,24 +78,16 @@ export function MovieDetail({ movie, onClose }: Props) {
       <div className="movie-detail__content">
         <div className="movie-detail__header">
           {posterUrl && (
-            <img
-              src={posterUrl}
-              alt={movie.title}
-              className="movie-detail__poster"
-            />
+            <img src={posterUrl} alt={title} className="movie-detail__poster" />
           )}
           <div className="movie-detail__meta">
-            <h2 className="movie-detail__title">{movie.title}</h2>
-            <p className="movie-detail__year">
-              {movie.release_date
-                ? movie.release_date.slice(0, 4)
-                : "Unknown year"}
-            </p>
+            <h2 className="movie-detail__title">{title}</h2>
+            <p className="movie-detail__year">{year}</p>
             <p className="movie-detail__rating">
-              ⭐ {movie.vote_average.toFixed(1)} / 10
+              ⭐ {item.vote_average.toFixed(1)} / 10
             </p>
             <p className="movie-detail__overview">
-              {movie.overview || "No overview available."}
+              {item.overview || "No overview available."}
             </p>
           </div>
         </div>
@@ -118,9 +119,7 @@ export function MovieDetail({ movie, onClose }: Props) {
           )}
 
           {!loading && !error && data && availableCountries.length === 0 && (
-            <p className="empty-text">
-              No streaming data available for this movie.
-            </p>
+            <p className="empty-text">{noDataLabel}</p>
           )}
 
           {!loading && !error && availableCountries.length > 0 && (

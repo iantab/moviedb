@@ -3,9 +3,10 @@ import { useState, useRef, useEffect } from "react";
 interface Props {
   onSearch: (query: string) => void;
   loading: boolean;
+  placeholder: string;
 }
 
-export function SearchBar({ onSearch, loading }: Props) {
+export function SearchBar({ onSearch, loading, placeholder }: Props) {
   const [query, setQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -19,11 +20,20 @@ export function SearchBar({ onSearch, loading }: Props) {
     };
   }, [query, onSearch]);
 
+  // Clear query when placeholder changes (i.e. media type toggled)
+  const prevPlaceholder = useRef(placeholder);
+  useEffect(() => {
+    if (prevPlaceholder.current !== placeholder) {
+      setQuery("");
+      prevPlaceholder.current = placeholder;
+    }
+  }, [placeholder]);
+
   return (
     <div className="search-bar">
       <input
         type="text"
-        placeholder="Search for a movie..."
+        placeholder={placeholder}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="search-input"

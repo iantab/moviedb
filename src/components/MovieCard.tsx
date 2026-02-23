@@ -1,34 +1,36 @@
-import type { Movie } from "../types/tmdb";
+import type { MediaItem } from "../types/tmdb";
+import { getTitle, getReleaseYear } from "../types/tmdb";
 import { IMAGE_BASE_URL } from "../services/tmdb";
 
 interface Props {
-  movie: Movie;
-  onClick: (movie: Movie) => void;
+  item: MediaItem;
+  onClick: (item: MediaItem) => void;
   selected: boolean;
 }
 
-export function MovieCard({ movie, onClick, selected }: Props) {
-  const posterUrl = movie.poster_path
-    ? `${IMAGE_BASE_URL}/w185${movie.poster_path}`
+export function MovieCard({ item, onClick, selected }: Props) {
+  const posterUrl = item.poster_path
+    ? `${IMAGE_BASE_URL}/w185${item.poster_path}`
     : null;
 
-  const year = movie.release_date ? movie.release_date.slice(0, 4) : "N/A";
-  const rating = movie.vote_average ? movie.vote_average.toFixed(1) : "?";
+  const title = getTitle(item);
+  const year = getReleaseYear(item);
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : "?";
 
   return (
     <div
       className={`movie-card ${selected ? "movie-card--selected" : ""}`}
-      onClick={() => onClick(movie)}
+      onClick={() => onClick(item)}
     >
       <div className="movie-card__poster">
         {posterUrl ? (
-          <img src={posterUrl} alt={movie.title} />
+          <img src={posterUrl} alt={title} />
         ) : (
           <div className="movie-card__no-poster">🎬</div>
         )}
       </div>
       <div className="movie-card__info">
-        <h3 className="movie-card__title">{movie.title}</h3>
+        <h3 className="movie-card__title">{title}</h3>
         <div className="movie-card__meta">
           <span className="movie-card__year">{year}</span>
           <span className="movie-card__rating">⭐ {rating}</span>

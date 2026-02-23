@@ -1,6 +1,6 @@
 import { useReducer, useEffect } from "react";
 import tmdbClient from "../services/tmdb";
-import type { WatchProvidersResult } from "../types/tmdb";
+import type { WatchProvidersResult, MediaType } from "../types/tmdb";
 
 type State = {
   data: WatchProvidersResult | null;
@@ -26,15 +26,19 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function useWatchProviders(movieId: number | null) {
+export function useWatchProviders(
+  mediaId: number | null,
+  mediaType: MediaType,
+) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    if (movieId === null) return;
+    if (mediaId === null) return;
     let cancelled = false;
     dispatch({ type: "FETCH_START" });
+    const endpoint = `/${mediaType}/${mediaId}/watch/providers`;
     tmdbClient
-      .get(`/movie/${movieId}/watch/providers`)
+      .get(endpoint)
       .then((res) => {
         if (!cancelled) dispatch({ type: "FETCH_SUCCESS", payload: res.data });
       })
@@ -49,10 +53,10 @@ export function useWatchProviders(movieId: number | null) {
     return () => {
       cancelled = true;
     };
-  }, [movieId]);
+  }, [mediaId, mediaType]);
 
-  // Reset data when movieId is cleared
-  const resolvedData = movieId === null ? null : state.data;
+  // Reset data when mediaId is cleared
+  const resolvedData = mediaId === null ? null : state.data;
 
   return { data: resolvedData, loading: state.loading, error: state.error };
 }

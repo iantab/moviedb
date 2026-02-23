@@ -43,6 +43,42 @@
   margin-bottom: 1.2rem;
 }
 
+/* ─── Media Toggle ─── */
+.media-toggle {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.media-toggle__btn {
+  padding: 0.4rem 1.1rem;
+  border-radius: 999px;
+  border: 1.5px solid #ffffff22;
+  background: #ffffff0a;
+  color: #8888aa;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+}
+
+.media-toggle__btn:hover {
+  border-color: #7c6fe066;
+  background: #7c6fe018;
+  color: #fff;
+}
+
+.media-toggle__btn--active {
+  border-color: #7c6fe0;
+  background: #7c6fe022;
+  color: #fff;
+  font-weight: 600;
+}
+
 /* ─── Search Bar ─── */
 .search-bar {
   position: relative;
