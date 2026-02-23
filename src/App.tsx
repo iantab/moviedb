@@ -1,23 +1,75 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import Fuse from "fuse.js";
 import { useMovieSearch } from "./hooks/useMovieSearch";
-import { SearchBar } from "./components/SearchBar"; // updated: onSearch prop
+import { SearchBar } from "./components/SearchBar";
 import { MovieCard } from "./components/MovieCard";
 import { MovieDetail } from "./components/MovieDetail";
 import { MediaToggle } from "./components/MediaToggle";
 import type { MediaItem, MediaType } from "./types/tmdb";
+import { getTitle } from "./types/tmdb";
 import "./App.css";
 
 function App() {
-  const { results, loading, error, search, clear, cancel } = useMovieSearch();
+  const {
+    results,
+    loading,
+    error,
+    getCorpusFor,
+    search,
+    populateCorpus,
+    clear,
+    cancel,
+  } = useMovieSearch();
 
   useEffect(() => cancel, [cancel]);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("movie");
   const [query, setQuery] = useState("");
+  // When false, the suggestions dropdown is suppressed (e.g. right after a selection)
+  const [suggestionsEnabled, setSuggestionsEnabled] = useState(true);
+
+  // Build Fuse instance over the current media type's corpus only — no cross-type leakage
+  const fuse = useMemo(
+    () =>
+      new Fuse(getCorpusFor(mediaType), {
+        keys: [
+          { name: "title", weight: 1 },
+          { name: "name", weight: 1 },
+        ],
+        threshold: 0.4,
+        minMatchCharLength: 2,
+      }),
+    [getCorpusFor, mediaType],
+  );
+
+  // Debounced background fetch — silently populates the corpus so fuzzy
+  // suggestions appear while typing, without updating the results grid.
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (query.trim().length < 2) return;
+    debounceRef.current = setTimeout(() => {
+      populateCorpus(query, mediaType);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query, mediaType, populateCorpus]);
+
+  // Local fuzzy suggestions — no API ping after corpus is warm
+  const suggestions = useMemo(() => {
+    if (!suggestionsEnabled) return [];
+    if (!query.trim() || query.trim().length < 2) return [];
+    return fuse
+      .search(query.trim())
+      .slice(0, 7)
+      .map((r) => r.item);
+  }, [fuse, query, suggestionsEnabled]);
 
   const handleQueryChange = useCallback(
     (q: string) => {
       setQuery(q);
+      setSuggestionsEnabled(true); // user is typing manually — show suggestions
       if (!q.trim()) {
         setSelectedItem(null);
         clear();
@@ -32,6 +84,13 @@ function App() {
       search(query, mediaType);
     }
   }, [query, mediaType, search]);
+
+  // When user picks a suggestion, jump straight to that item's detail
+  const handleSuggestionSelect = useCallback((item: MediaItem) => {
+    setSuggestionsEnabled(false); // suppress dropdown after selection
+    setQuery(getTitle(item));
+    setSelectedItem(item);
+  }, []);
 
   const handleTypeChange = useCallback(
     (type: MediaType) => {
@@ -66,6 +125,8 @@ function App() {
           query={query}
           onQueryChange={handleQueryChange}
           onSearch={handleSearch}
+          onSuggestionSelect={handleSuggestionSelect}
+          suggestions={suggestions}
           loading={loading}
           placeholder={placeholder}
         />
