@@ -39,9 +39,9 @@ export function CountrySelector({
     return (CONTINENT_ORDER[a] ?? 98) - (CONTINENT_ORDER[b] ?? 98);
   });
 
-  // Track which continents are manually opened/closed
+  // Track which continents are manually opened/closed (all expanded by default)
   const [openContinents, setOpenContinents] = useState<Set<string>>(
-    () => new Set(),
+    () => new Set(sortedContinents),
   );
 
   // Always ensure the selected country's continent is open

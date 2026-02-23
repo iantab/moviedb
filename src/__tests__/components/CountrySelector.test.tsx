@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+/// <reference types="@testing-library/jest-dom" />
 import { render, screen, fireEvent } from "@testing-library/react";
 import { CountrySelector } from "../../components/CountrySelector";
 
@@ -11,7 +12,7 @@ describe("CountrySelector", () => {
   const euCountries = ["FR", "DE"]; // Europe
   const allCountries = [...naCountries, ...euCountries];
 
-  it("groups countries by continent (NA and EU groups visible after expand all)", () => {
+  it("groups countries by continent (NA and EU groups visible by default)", () => {
     render(
       <CountrySelector
         availableCountries={allCountries}
@@ -19,7 +20,6 @@ describe("CountrySelector", () => {
         onSelect={jest.fn()}
       />,
     );
-    fireEvent.click(screen.getByText("Expand all"));
     expect(screen.getByText("North America")).toBeInTheDocument();
     expect(screen.getByText("Europe")).toBeInTheDocument();
   });
@@ -54,20 +54,6 @@ describe("CountrySelector", () => {
     expect(names).toEqual(["Canada", "Mexico", "United States"]);
   });
 
-  it("clicking a closed continent header opens it", () => {
-    render(
-      <CountrySelector
-        availableCountries={naCountries}
-        selected={null}
-        onSelect={jest.fn()}
-      />,
-    );
-    // Initially closed
-    expect(screen.queryByText("United States")).toBeNull();
-    fireEvent.click(screen.getByText("North America"));
-    expect(screen.getByText("United States")).toBeInTheDocument();
-  });
-
   it("clicking an open continent header closes it", () => {
     render(
       <CountrySelector
@@ -76,14 +62,27 @@ describe("CountrySelector", () => {
         onSelect={jest.fn()}
       />,
     );
-    const header = screen.getByText("North America");
-    fireEvent.click(header); // open
+    // Starts open by default
     expect(screen.getByText("United States")).toBeInTheDocument();
-    fireEvent.click(header); // close
+    fireEvent.click(screen.getByText("North America")); // close
     expect(screen.queryByText("United States")).toBeNull();
   });
 
-  it("selected country's continent is open even without explicit toggle", () => {
+  it("clicking a closed continent header opens it", () => {
+    render(
+      <CountrySelector
+        availableCountries={naCountries}
+        selected={null}
+        onSelect={jest.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByText("North America")); // close
+    expect(screen.queryByText("United States")).toBeNull();
+    fireEvent.click(screen.getByText("North America")); // re-open
+    expect(screen.getByText("United States")).toBeInTheDocument();
+  });
+
+  it("selected country's continent is open by default", () => {
     render(
       <CountrySelector
         availableCountries={allCountries}
@@ -91,13 +90,12 @@ describe("CountrySelector", () => {
         onSelect={jest.fn()}
       />,
     );
-    // US is in NA — its continent should be open by default
+    // All continents open by default
     expect(screen.getByText("United States")).toBeInTheDocument();
-    // EU should be closed
-    expect(screen.queryByText("France")).toBeNull();
+    expect(screen.getByText("France")).toBeInTheDocument();
   });
 
-  it("Expand all opens all continent groups", () => {
+  it("Expand all opens all continent groups (already open by default)", () => {
     render(
       <CountrySelector
         availableCountries={allCountries}
@@ -105,6 +103,11 @@ describe("CountrySelector", () => {
         onSelect={jest.fn()}
       />,
     );
+    expect(screen.getByText("United States")).toBeInTheDocument();
+    expect(screen.getByText("France")).toBeInTheDocument();
+    // Collapse all then re-expand to verify the button still works
+    fireEvent.click(screen.getByText("Collapse all"));
+    expect(screen.queryByText("United States")).toBeNull();
     fireEvent.click(screen.getByText("Expand all"));
     expect(screen.getByText("United States")).toBeInTheDocument();
     expect(screen.getByText("France")).toBeInTheDocument();
@@ -227,7 +230,7 @@ describe("CountrySelector", () => {
         onSelect={jest.fn()}
       />,
     );
-    fireEvent.click(screen.getByText("Expand all"));
+    // Group is open by default
     expect(screen.getByText("XX")).toBeInTheDocument();
   });
 });
