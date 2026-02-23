@@ -1,30 +1,50 @@
-import { useState, useEffect } from "react";
+import { useReducer, useEffect } from "react";
 import tmdbClient from "../services/tmdb";
 import type { WatchProvidersResult } from "../types/tmdb";
 
+type State = {
+  data: WatchProvidersResult | null;
+  loading: boolean;
+  error: string | null;
+};
+
+type Action =
+  | { type: "FETCH_START" }
+  | { type: "FETCH_SUCCESS"; payload: WatchProvidersResult }
+  | { type: "FETCH_ERROR"; payload: string };
+
+const initialState: State = { data: null, loading: false, error: null };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "FETCH_START":
+      return { data: state.data, loading: true, error: null };
+    case "FETCH_SUCCESS":
+      return { data: action.payload, loading: false, error: null };
+    case "FETCH_ERROR":
+      return { data: null, loading: false, error: action.payload };
+  }
+}
+
 export function useWatchProviders(movieId: number | null) {
-  const [data, setData] = useState<WatchProvidersResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     if (movieId === null) return;
     let cancelled = false;
-    setLoading(true);
-    setError(null);
+    dispatch({ type: "FETCH_START" });
     tmdbClient
       .get(`/movie/${movieId}/watch/providers`)
       .then((res) => {
-        if (!cancelled) setData(res.data);
+        if (!cancelled) dispatch({ type: "FETCH_SUCCESS", payload: res.data });
       })
       .catch((err: unknown) => {
         if (!cancelled)
-          setError(
-            err instanceof Error ? err.message : "Failed to load providers",
-          );
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+          dispatch({
+            type: "FETCH_ERROR",
+            payload:
+              err instanceof Error ? err.message : "Failed to load providers",
+          });
       });
     return () => {
       cancelled = true;
@@ -32,7 +52,7 @@ export function useWatchProviders(movieId: number | null) {
   }, [movieId]);
 
   // Reset data when movieId is cleared
-  const resolvedData = movieId === null ? null : data;
+  const resolvedData = movieId === null ? null : state.data;
 
-  return { data: resolvedData, loading, error };
+  return { data: resolvedData, loading: state.loading, error: state.error };
 }
