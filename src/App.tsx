@@ -44,7 +44,7 @@ function App() {
   return (
     <div className="app">
       <header className="app__header">
-        <h1 className="app__title">🎬 MovieStream</h1>
+        <h1 className="app__title">🎬 StreamScout</h1>
         <p className="app__subtitle">
           Search movies and TV shows and find where to watch them worldwide
         </p>
