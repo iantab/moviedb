@@ -10,6 +10,8 @@ export interface Movie {
   release_date: string;
   vote_average: number;
   genre_ids: number[];
+  original_language?: string;
+  origin_country?: string[];
 }
 
 export interface TvShow {
@@ -22,6 +24,8 @@ export interface TvShow {
   first_air_date: string;
   vote_average: number;
   genre_ids: number[];
+  original_language?: string;
+  origin_country?: string[];
 }
 
 export type MediaItem = Movie | TvShow;

@@ -1,6 +1,19 @@
 import { type KeyboardEvent, useReducer, useRef, useEffect } from "react";
 import type { MediaItem } from "../types/tmdb";
-import { getTitle } from "../types/tmdb";
+import { getTitle, getReleaseYear, isTvShow } from "../types/tmdb";
+
+function getSuggestionMeta(item: MediaItem): string {
+  const year = getReleaseYear(item);
+  const countries = item.origin_country ?? [];
+  const country =
+    countries.length > 0
+      ? countries[0]
+      : (item.original_language?.toUpperCase() ?? "");
+  const parts: string[] = [];
+  if (year && year !== "N/A") parts.push(year);
+  if (country) parts.push(country);
+  return parts.join(" · ");
+}
 
 interface Props {
   query: string;
@@ -169,7 +182,12 @@ export function SearchBar({
                 dispatch({ type: "ARROW_DOWN", max: idx });
               }}
             >
-              {getTitle(item)}
+              <span className="search-suggestion-title">{getTitle(item)}</span>
+              {getSuggestionMeta(item) && (
+                <span className="search-suggestion-meta">
+                  {getSuggestionMeta(item)}
+                </span>
+              )}
             </li>
           ))}
         </ul>

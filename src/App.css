@@ -179,12 +179,36 @@
   cursor: pointer;
   transition: background 0.15s;
   text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.search-suggestion-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-suggestion-meta {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: #8080a8;
+  white-space: nowrap;
 }
 
 .search-suggestion-item:hover,
 .search-suggestion-item.active {
   background: #7c6fe033;
   color: #fff;
+}
+
+.search-suggestion-item:hover .search-suggestion-meta,
+.search-suggestion-item.active .search-suggestion-meta {
+  color: #b0a8d8;
 }
 
 /* ─── Main ─── */
