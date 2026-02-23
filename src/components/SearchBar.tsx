@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useReducer, useRef, useEffect } from "react";
 import type { MediaItem } from "../types/tmdb";
-import { getTitle, getReleaseYear, isTvShow } from "../types/tmdb";
+import { getTitle, getReleaseYear } from "../types/tmdb";
 
 function getSuggestionMeta(item: MediaItem): string {
   const year = getReleaseYear(item);
