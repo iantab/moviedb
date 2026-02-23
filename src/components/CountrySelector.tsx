@@ -4,12 +4,14 @@ interface Props {
   availableCountries: string[];
   selected: string | null;
   onSelect: (code: string) => void;
+  netflixCountries?: string[];
 }
 
 export function CountrySelector({
   availableCountries,
   selected,
   onSelect,
+  netflixCountries = [],
 }: Props) {
   const sorted = [...availableCountries].sort((a, b) => {
     const nameA = COUNTRY_NAMES[a] ?? a;
@@ -23,28 +25,29 @@ export function CountrySelector({
         Available in {availableCountries.length} countries
       </h3>
       <div className="country-selector__grid">
-        {sorted.map((code) => (
-          <button
-            key={code}
-            className={`country-btn ${selected === code ? "country-btn--selected" : ""}`}
-            onClick={() => onSelect(code)}
-            title={COUNTRY_NAMES[code] ?? code}
-          >
-            <span className="country-btn__flag">{countryCodeToFlag(code)}</span>
-            <span className="country-btn__name">
-              {COUNTRY_NAMES[code] ?? code}
-            </span>
-          </button>
-        ))}
+        {sorted.map((code) => {
+          const isNetflix = netflixCountries.includes(code);
+          return (
+            <button
+              key={code}
+              className={[
+                "country-btn",
+                selected === code ? "country-btn--selected" : "",
+                isNetflix ? "country-btn--netflix" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              onClick={() => onSelect(code)}
+              title={`${COUNTRY_NAMES[code] ?? code}${isNetflix ? " — on Netflix" : ""}`}
+            >
+              <span className="country-btn__name">
+                {COUNTRY_NAMES[code] ?? code}
+              </span>
+              {isNetflix && <span className="country-btn__netflix-dot" />}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
-}
-
-function countryCodeToFlag(code: string): string {
-  return code
-    .toUpperCase()
-    .split("")
-    .map((char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
-    .join("");
 }

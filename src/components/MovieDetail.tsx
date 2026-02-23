@@ -5,6 +5,8 @@ import { useWatchProviders } from "../hooks/useWatchProviders";
 import { CountrySelector } from "./CountrySelector";
 import { ProviderList } from "./ProviderList";
 
+const NETFLIX_ID = 8;
+
 interface Props {
   movie: Movie;
   onClose: () => void;
@@ -12,6 +14,7 @@ interface Props {
 
 export function MovieDetail({ movie, onClose }: Props) {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [netflixOnly, setNetflixOnly] = useState(false);
   const { data, loading, error } = useWatchProviders(movie.id);
 
   const backdropUrl = movie.backdrop_path
@@ -21,9 +24,30 @@ export function MovieDetail({ movie, onClose }: Props) {
     ? `${IMAGE_BASE_URL}/w342${movie.poster_path}`
     : null;
 
-  const availableCountries = data ? Object.keys(data.results) : [];
+  const availableCountries = data
+    ? Object.keys(data.results).filter((code) => {
+        const p = data.results[code];
+        return p.flatrate?.length || p.free?.length || p.ads?.length;
+      })
+    : [];
+
+  const netflixCountries = data
+    ? Object.keys(data.results).filter((code) =>
+        data.results[code].flatrate?.some((p) => p.provider_id === NETFLIX_ID),
+      )
+    : [];
+
+  const displayedCountries = netflixOnly
+    ? availableCountries.filter((c) => netflixCountries.includes(c))
+    : availableCountries;
+
   const countryProviders =
     selectedCountry && data ? data.results[selectedCountry] : null;
+
+  const handleNetflixToggle = () => {
+    setNetflixOnly((prev) => !prev);
+    setSelectedCountry(null);
+  };
 
   return (
     <div className="movie-detail">
@@ -67,9 +91,25 @@ export function MovieDetail({ movie, onClose }: Props) {
         </div>
 
         <div className="movie-detail__streaming">
-          <h3 className="movie-detail__section-title">
-            🌍 Streaming Availability
-          </h3>
+          <div className="movie-detail__streaming-header">
+            <h3 className="movie-detail__section-title">
+              🌍 Streaming Availability
+            </h3>
+            {netflixCountries.length > 0 && (
+              <button
+                className={`netflix-filter-btn ${netflixOnly ? "netflix-filter-btn--active" : ""}`}
+                onClick={handleNetflixToggle}
+                title={
+                  netflixOnly
+                    ? "Show all countries"
+                    : `Available on Netflix in ${netflixCountries.length} countries`
+                }
+              >
+                <span className="netflix-filter-btn__n">N</span>
+                <span className="netflix-filter-btn__label">Netflix</span>
+              </button>
+            )}
+          </div>
 
           {loading && <p className="loading-text">Loading streaming data...</p>}
           {error && (
@@ -85,9 +125,10 @@ export function MovieDetail({ movie, onClose }: Props) {
           {!loading && !error && availableCountries.length > 0 && (
             <>
               <CountrySelector
-                availableCountries={availableCountries}
+                availableCountries={displayedCountries}
                 selected={selectedCountry}
                 onSelect={setSelectedCountry}
+                netflixCountries={netflixCountries}
               />
               {countryProviders && (
                 <div className="movie-detail__providers">

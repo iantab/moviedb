@@ -39,8 +39,6 @@ function ProviderGroup({
 export function ProviderList({ countryCode, providers }: Props) {
   const hasAny =
     providers.flatrate?.length ||
-    providers.rent?.length ||
-    providers.buy?.length ||
     providers.free?.length ||
     providers.ads?.length;
 
@@ -67,12 +65,6 @@ export function ProviderList({ countryCode, providers }: Props) {
       ) : null}
       {providers.ads?.length ? (
         <ProviderGroup label="Free with Ads" providers={providers.ads} />
-      ) : null}
-      {providers.rent?.length ? (
-        <ProviderGroup label="Rent" providers={providers.rent} />
-      ) : null}
-      {providers.buy?.length ? (
-        <ProviderGroup label="Buy" providers={providers.buy} />
       ) : null}
     </div>
   );
