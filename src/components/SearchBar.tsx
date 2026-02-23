@@ -2,7 +2,7 @@ import { type KeyboardEvent, useReducer, useRef, useEffect } from "react";
 import type { MediaItem } from "../types/tmdb";
 import { getTitle, getReleaseYear } from "../types/tmdb";
 
-function getSuggestionMeta(item: MediaItem): string {
+export function getSuggestionMeta(item: MediaItem): string {
   const year = getReleaseYear(item);
   const countries = item.origin_country ?? [];
   const country =
@@ -40,7 +40,7 @@ type Action =
   | { type: "ARROW_UP" }
   | { type: "SELECT" };
 
-function reducer(state: State, action: Action): State {
+export function searchBarReducer(state: State, action: Action): State {
   switch (action.type) {
     case "NEW_SUGGESTIONS":
       if (action.suggestions === state.lastSuggestions) return state;
@@ -86,7 +86,7 @@ export function SearchBar({
   loading,
   placeholder,
 }: Props) {
-  const [state, dispatch] = useReducer(reducer, {
+  const [state, dispatch] = useReducer(searchBarReducer, {
     activeIndex: -1,
     dismissed: false,
     justSelected: false,

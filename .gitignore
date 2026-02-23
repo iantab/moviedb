@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Jest coverage output
+coverage
+
 # Local config (contains API keys — do not commit)
 config.yaml
 .env

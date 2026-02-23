@@ -5,7 +5,7 @@ import { getCached, setCached } from "../utils/cache";
 
 type Corpus = Record<MediaType, MediaItem[]>;
 
-function mergeIntoCorpus(
+export function mergeIntoCorpus(
   prev: Corpus,
   mediaType: MediaType,
   items: MediaItem[],

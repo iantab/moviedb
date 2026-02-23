@@ -16,7 +16,7 @@ type Action =
 
 const initialState: State = { data: null, loading: false, error: null };
 
-function reducer(state: State, action: Action): State {
+export function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "FETCH_START":
       return { data: state.data, loading: true, error: null };
