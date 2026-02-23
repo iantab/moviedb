@@ -25,4 +25,7 @@ dist-ssr
 
 # Local config (contains API keys — do not commit)
 config.yaml
+.env
+.env.local
+.env.*.local
 
