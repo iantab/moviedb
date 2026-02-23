@@ -26,6 +26,12 @@ dist-ssr
 # Jest coverage output
 coverage
 
+# TypeScript build cache
+*.tsbuildinfo
+
+# Local IDE TypeScript config
+tsconfig.ide.json
+
 # Local config (contains API keys — do not commit)
 config.yaml
 .env
