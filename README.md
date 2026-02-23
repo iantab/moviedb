@@ -1,5 +1,7 @@
 # 🎬 StreamScout
 
+🌐 **Live demo:** [iantab.github.io/moviedb](https://iantab.github.io/moviedb)
+
 A React + TypeScript app that lets you search for movies and TV shows and find where to stream them around the world, powered by the [TMDB API](https://www.themoviedb.org/).
 
 ## Features
