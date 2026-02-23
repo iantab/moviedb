@@ -316,22 +316,118 @@
 }
 
 .movie-detail__providers {
-  margin-top: 1.75rem;
-  border-top: 1px solid #ffffff14;
-  padding-top: 1.5rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #ffffff14;
 }
 
 /* ─── Country Selector ─── */
+.country-selector__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
 .country-selector__title {
   font-size: 0.9rem;
   color: #a0a0c0;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0;
+}
+
+.country-selector__actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.continent-action-btn {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  border: 1.5px solid #ffffff18;
+  background: #ffffff0a;
+  color: #8888aa;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
+}
+
+.continent-action-btn:hover {
+  border-color: #7c6fe066;
+  background: #7c6fe018;
+  color: #fff;
+}
+
+.continent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.continent-group {
+  border: 1.5px solid #ffffff14;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.continent-group__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  user-select: none;
+  background: #ffffff07;
+  transition: background 0.15s;
+  width: 100%;
+  border: none;
+  text-align: left;
+  color: inherit;
+}
+
+.continent-group__summary:hover {
+  background: #ffffff10;
+}
+
+.continent-group__arrow {
+  font-size: 0.6rem;
+  color: #7c6fe0;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.continent-group__name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e0e0f0;
+  flex: 1;
+}
+
+.continent-group__count {
+  font-size: 0.75rem;
+  color: #666688;
+}
+
+.continent-group__netflix-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  color: #e50008;
+  font-weight: 600;
 }
 
 .country-selector__grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border-top: 1px solid #ffffff10;
 }
 
 .country-btn {

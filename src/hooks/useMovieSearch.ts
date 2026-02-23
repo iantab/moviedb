@@ -28,5 +28,10 @@ export function useMovieSearch() {
       .finally(() => setLoading(false));
   }, []);
 
-  return { results, loading, error, search };
+  const clear = useCallback(() => {
+    setResults([]);
+    setError(null);
+  }, []);
+
+  return { results, loading, error, search, clear };
 }

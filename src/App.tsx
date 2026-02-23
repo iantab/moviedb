@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useMovieSearch } from "./hooks/useMovieSearch";
 import { SearchBar } from "./components/SearchBar";
 import { MovieCard } from "./components/MovieCard";
@@ -8,21 +8,28 @@ import type { MediaItem, MediaType } from "./types/tmdb";
 import "./App.css";
 
 function App() {
-  const { results, loading, error, search } = useMovieSearch();
+  const { results, loading, error, search, clear } = useMovieSearch();
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("movie");
+  const [query, setQuery] = useState("");
 
-  const handleSearch = useCallback(
-    (query: string) => {
-      setSelectedItem(null);
+  const handleQueryChange = useCallback((q: string) => {
+    setQuery(q);
+    if (!q.trim()) setSelectedItem(null);
+  }, []);
+
+  // Trigger search whenever query or mediaType changes
+  useEffect(() => {
+    if (query.trim()) {
       search(query, mediaType);
-    },
-    [search, mediaType],
-  );
+    }
+  }, [query, mediaType, search]);
 
   const handleTypeChange = (type: MediaType) => {
     setMediaType(type);
     setSelectedItem(null);
+    setQuery("");
+    clear();
   };
 
   const placeholder =
@@ -43,7 +50,8 @@ function App() {
         </p>
         <MediaToggle value={mediaType} onChange={handleTypeChange} />
         <SearchBar
-          onSearch={handleSearch}
+          query={query}
+          onQueryChange={handleQueryChange}
           loading={loading}
           placeholder={placeholder}
         />

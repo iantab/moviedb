@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { MediaItem, MediaType } from "../types/tmdb";
 import { getTitle, getReleaseYear, isTvShow } from "../types/tmdb";
 import { IMAGE_BASE_URL } from "../services/tmdb";
@@ -18,7 +18,14 @@ interface Props {
 export function MovieDetail({ item, mediaType, onClose }: Props) {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [netflixOnly, setNetflixOnly] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const { data, loading, error } = useWatchProviders(item.id, mediaType);
+
+  useEffect(() => {
+    if (selectedCountry && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedCountry]);
 
   const title = getTitle(item);
   const year = getReleaseYear(item);
@@ -60,7 +67,7 @@ export function MovieDetail({ item, mediaType, onClose }: Props) {
     : "No streaming data available for this movie.";
 
   return (
-    <div className="movie-detail">
+    <div className="movie-detail" ref={cardRef}>
       {backdropUrl && (
         <div
           className="movie-detail__backdrop"
@@ -124,12 +131,6 @@ export function MovieDetail({ item, mediaType, onClose }: Props) {
 
           {!loading && !error && availableCountries.length > 0 && (
             <>
-              <CountrySelector
-                availableCountries={displayedCountries}
-                selected={selectedCountry}
-                onSelect={setSelectedCountry}
-                netflixCountries={netflixCountries}
-              />
               {countryProviders && (
                 <div className="movie-detail__providers">
                   <h3 className="movie-detail__section-title">
@@ -144,6 +145,12 @@ export function MovieDetail({ item, mediaType, onClose }: Props) {
                   />
                 </div>
               )}
+              <CountrySelector
+                availableCountries={displayedCountries}
+                selected={selectedCountry}
+                onSelect={setSelectedCountry}
+                netflixCountries={netflixCountries}
+              />
             </>
           )}
         </div>
