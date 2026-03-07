@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "prepare": "husky",
-    "predeploy": "npm run build",
+    "predeploy": "bun run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {

@@ -6,8 +6,9 @@ A React + TypeScript app that lets you search for movies and TV shows and find w
 
 ## Features
 
+- 🔥 **Trending & Popular** — homepage displays trending and popular movies/TV shows powered by TMDB, updated weekly
 - 🔍 **Movie & TV search** — search for any movie or TV show with live debounced results
-- 🎬📺 **Media type toggle** — switch between Movies and TV Shows mode; the search bar placeholder updates accordingly
+- 🎬📺 **Media type toggle** — switch between Movies and TV Shows mode; trending, popular, and search all follow the toggle
 - 🌍 **Streaming availability** — see every country where a title is available to stream (rent/buy excluded)
 - 📺 **Provider breakdown** — click a country to see which streaming services carry it (Netflix, Disney+, etc.), grouped by Stream / Free / Free with Ads
 - 🔴 **Netflix filter** — one-click button to highlight or filter to only the countries where the title is on Netflix
@@ -24,7 +25,7 @@ A React + TypeScript app that lets you search for movies and TV shows and find w
 ### 1. Clone and install
 
 ```bash
-npm install
+bun install
 ```
 
 ### 2. Add your TMDB API key
@@ -45,7 +46,7 @@ You can get a free API read access token from [TMDB settings](https://www.themov
 ### 3. Run the dev server
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Then open [http://localhost:5173](http://localhost:5173).
