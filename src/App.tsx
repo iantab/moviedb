@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import Fuse from "fuse.js";
 import { useMovieSearch } from "./hooks/useMovieSearch";
+import { useDiscovery } from "./hooks/useDiscovery";
 import { SearchBar } from "./components/SearchBar";
 import { MovieCard } from "./components/MovieCard";
 import { MovieDetail } from "./components/MovieDetail";
@@ -24,6 +25,12 @@ function App() {
   useEffect(() => cancel, [cancel]);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("movie");
+
+  const {
+    trending,
+    popular,
+    loading: discoveryLoading,
+  } = useDiscovery(mediaType);
   const [query, setQuery] = useState("");
   // When false, the suggestions dropdown is suppressed (e.g. right after a selection)
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(true);
@@ -106,10 +113,11 @@ function App() {
 
   const placeholder =
     mediaType === "movie" ? "Search for a movie..." : "Search for a TV show...";
-  const emptyLabel =
+  const hasSearched = query.trim().length > 0;
+  const noResults =
     mediaType === "movie"
-      ? "🔍 Search for a movie above to get started"
-      : "🔍 Search for a TV show above to get started";
+      ? "No movies found. Try a different search."
+      : "No TV shows found. Try a different search.";
 
   const selectedId = selectedItem?.id ?? null;
 
@@ -148,9 +156,50 @@ function App() {
           </div>
         )}
 
-        {!selectedItem && !loading && results.length === 0 && (
+        {!selectedItem && !hasSearched && !discoveryLoading && (
+          <div className="discovery">
+            {trending.length > 0 && (
+              <section className="discovery__section">
+                <h2 className="discovery__heading">Trending This Week</h2>
+                <div className="movie-grid">
+                  {trending.map((item: MediaItem) => (
+                    <MovieCard
+                      key={item.id}
+                      item={item}
+                      onClick={setSelectedItem}
+                      selected={selectedId === item.id}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+            {popular.length > 0 && (
+              <section className="discovery__section">
+                <h2 className="discovery__heading">Popular</h2>
+                <div className="movie-grid">
+                  {popular.map((item: MediaItem) => (
+                    <MovieCard
+                      key={item.id}
+                      item={item}
+                      onClick={setSelectedItem}
+                      selected={selectedId === item.id}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+
+        {!selectedItem && !hasSearched && discoveryLoading && (
           <div className="app__empty">
-            <p>{emptyLabel}</p>
+            <p>Loading...</p>
+          </div>
+        )}
+
+        {!selectedItem && hasSearched && !loading && results.length === 0 && (
+          <div className="app__empty">
+            <p>{noResults}</p>
           </div>
         )}
 

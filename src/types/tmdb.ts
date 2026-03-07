@@ -9,6 +9,7 @@ export interface Movie {
   backdrop_path: string | null;
   release_date: string;
   vote_average: number;
+  popularity?: number;
   genre_ids: number[];
   original_language?: string;
   origin_country?: string[];
@@ -23,6 +24,7 @@ export interface TvShow {
   backdrop_path: string | null;
   first_air_date: string;
   vote_average: number;
+  popularity?: number;
   genre_ids: number[];
   original_language?: string;
   origin_country?: string[];

@@ -704,6 +704,24 @@
   font-size: 0.9rem;
 }
 
+/* ─── Discovery Sections ─── */
+.discovery {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.discovery__heading {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #e8e8f0;
+  margin-bottom: 1rem;
+}
+
+.discovery .movie-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 600px) {
   .movie-detail__header {
@@ -717,5 +735,8 @@
   }
   .movie-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+  .discovery .movie-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
