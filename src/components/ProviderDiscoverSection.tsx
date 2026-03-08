@@ -70,7 +70,7 @@ export function ProviderDiscoverSection({
   selectedId,
   onItemClick,
 }: Props) {
-  const [providerId, setProviderId] = useState(PROVIDERS[0].id);
+  const [providerId, setProviderId] = useState<number>(PROVIDERS[0].id);
   const [countryCode, setCountryCode] = useState(detectCountry);
 
   const { items, loading, error } = useProviderDiscover(
