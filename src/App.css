@@ -718,6 +718,42 @@
   margin-bottom: 1rem;
 }
 
+.discovery__heading-row {
+  margin-bottom: 1rem;
+}
+
+.discovery__heading-row .discovery__heading {
+  margin-bottom: 0;
+}
+
+.discovery__inline-select {
+  appearance: none;
+  border: none;
+  border-bottom: 1.5px solid #7c6fe088;
+  background: transparent;
+  color: #7c6fe0;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0 0.15rem;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.discovery__inline-select:hover,
+.discovery__inline-select:focus {
+  border-color: #7c6fe0;
+  background: #7c6fe012;
+}
+
+.discovery__inline-select option {
+  background: #1a1a2e;
+  color: #e8e8f0;
+}
+
 .discovery .movie-grid {
   grid-template-columns: repeat(5, 1fr);
 }

@@ -10,6 +10,7 @@ const TTL_MS: Record<string, number> = {
   popular: 4 * 60 * 60 * 1000, // 4 hours
   search: 30 * 60 * 1000, // 30 minutes
   providers: 24 * 60 * 60 * 1000, // 24 hours
+  discover: 2 * 60 * 60 * 1000, // 2 hours
 };
 const DEFAULT_TTL = 60 * 60 * 1000; // 1 hour
 
