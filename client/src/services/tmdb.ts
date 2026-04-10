@@ -1,22 +1,18 @@
 import axios from "axios";
 import { attachRateLimiter } from "../utils/rateLimiter";
 
-// In dev, route through the Vite proxy so requests are logged in the terminal.
-// In production, call TMDB directly.
+// In dev, the Vite proxy forwards /api/tmdb to the local Spring Boot server.
+// In production, call the deployed proxy server directly.
 const BASE_URL = import.meta.env.DEV
   ? "/api/tmdb"
-  : (import.meta.env.VITE_TMDB_BASE_URL as string);
+  : `${import.meta.env.VITE_PROXY_BASE_URL as string}/api/tmdb`;
 
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY as string;
 export const IMAGE_BASE_URL = import.meta.env
   .VITE_TMDB_IMAGE_BASE_URL as string;
 
 const tmdbClient = axios.create({
   baseURL: BASE_URL,
-  // Only send the Authorization header in production — the proxy injects it in dev.
-  headers: import.meta.env.DEV
-    ? { Accept: "application/json" }
-    : { Authorization: `Bearer ${API_KEY}`, Accept: "application/json" },
+  headers: { Accept: "application/json" },
 });
 
 attachRateLimiter(tmdbClient);

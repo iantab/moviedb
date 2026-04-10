@@ -17,48 +17,39 @@ export default defineConfig(({ mode }) => {
       })
     : null;
 
-  const apiKey = yamlConfig?.tmdb.api_key ?? env.VITE_TMDB_API_KEY ?? "";
-  const baseUrl =
-    yamlConfig?.tmdb.base_url ??
-    env.VITE_TMDB_BASE_URL ??
-    "https://api.themoviedb.org/3";
   const imageBaseUrl =
     yamlConfig?.tmdb.image_base_url ??
     env.VITE_TMDB_IMAGE_BASE_URL ??
     "https://image.tmdb.org/t/p";
 
+  const proxyBaseUrl = env.VITE_PROXY_BASE_URL ?? "";
+
   return {
     base: "/moviedb/",
     plugins: [react()],
     define: {
-      "import.meta.env.VITE_TMDB_API_KEY": JSON.stringify(apiKey),
-      "import.meta.env.VITE_TMDB_BASE_URL": JSON.stringify(baseUrl),
       "import.meta.env.VITE_TMDB_IMAGE_BASE_URL": JSON.stringify(imageBaseUrl),
+      "import.meta.env.VITE_PROXY_BASE_URL": JSON.stringify(proxyBaseUrl),
     },
     server: {
       proxy: {
         "/api/tmdb": {
-          target: "https://api.themoviedb.org/3",
+          target: "http://localhost:8080",
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/tmdb/, ""),
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            Accept: "application/json",
-          },
           configure: (proxy) => {
             proxy.on("proxyReq", (_proxyReq, req) => {
-              console.log(`\x1b[35m[TMDB] ▶ ${req.method} ${req.url}\x1b[0m`);
+              console.log(`\x1b[35m[PROXY] ▶ ${req.method} ${req.url}\x1b[0m`);
             });
             proxy.on("proxyRes", (proxyRes, req) => {
               const ok = proxyRes.statusCode && proxyRes.statusCode < 400;
               const color = ok ? "\x1b[32m" : "\x1b[31m";
               console.log(
-                `${color}[TMDB] ${proxyRes.statusCode} ${req.url}\x1b[0m`,
+                `${color}[PROXY] ${proxyRes.statusCode} ${req.url}\x1b[0m`,
               );
             });
             proxy.on("error", (err, req) => {
               console.error(
-                `\x1b[31m[TMDB] ❌ ERROR ${req.url} — ${err.message}\x1b[0m`,
+                `\x1b[31m[PROXY] ❌ ERROR ${req.url} — ${err.message}\x1b[0m`,
               );
             });
           },
