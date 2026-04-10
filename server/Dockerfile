@@ -2,7 +2,7 @@ FROM eclipse-temurin:25-jdk AS build
 WORKDIR /app
 COPY gradle gradle
 COPY gradlew build.gradle.kts settings.gradle.kts ./
-RUN ./gradlew dependencies --no-daemon
+RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
 COPY src src
 RUN ./gradlew bootJar --no-daemon
 
