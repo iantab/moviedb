@@ -6,7 +6,11 @@ import { SearchBar } from "./components/SearchBar";
 import { MovieCard } from "./components/MovieCard";
 import { MovieDetail } from "./components/MovieDetail";
 import { MediaToggle } from "./components/MediaToggle";
-import { ProviderDiscoverSection } from "./components/ProviderDiscoverSection";
+import {
+  ProviderDiscoverSection,
+  PROVIDERS,
+} from "./components/ProviderDiscoverSection";
+import { detectCountry } from "./utils/detectCountry";
 import type { MediaItem, MediaType } from "./types/tmdb";
 import { getTitle } from "./types/tmdb";
 import "./App.css";
@@ -26,6 +30,8 @@ function App() {
   useEffect(() => cancel, [cancel]);
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("movie");
+  const [providerId, setProviderId] = useState<number>(PROVIDERS[0].id);
+  const [countryCode, setCountryCode] = useState(detectCountry);
 
   const [query, setQuery] = useState("");
   // When false, the suggestions dropdown is suppressed (e.g. right after a selection)
@@ -158,6 +164,10 @@ function App() {
               mediaType={mediaType}
               selectedId={selectedId}
               onItemClick={setSelectedItem}
+              providerId={providerId}
+              onProviderChange={setProviderId}
+              countryCode={countryCode}
+              onCountryChange={setCountryCode}
             />
           </div>
         )}

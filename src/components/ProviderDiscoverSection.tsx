@@ -1,11 +1,9 @@
-import { useState } from "react";
 import type { MediaItem, MediaType } from "../types/tmdb";
 import { useProviderDiscover } from "../hooks/useProviderDiscover";
 import { MovieCard } from "./MovieCard";
 import { COUNTRY_NAMES } from "../utils/countryNames";
-import { detectCountry } from "../utils/detectCountry";
 
-const PROVIDERS = [
+export const PROVIDERS = [
   { id: 8, name: "Netflix" },
   { id: 9, name: "Amazon Prime Video" },
   { id: 337, name: "Disney+" },
@@ -63,16 +61,21 @@ interface Props {
   mediaType: MediaType;
   selectedId: number | null;
   onItemClick: (item: MediaItem) => void;
+  providerId: number;
+  onProviderChange: (id: number) => void;
+  countryCode: string;
+  onCountryChange: (code: string) => void;
 }
 
 export function ProviderDiscoverSection({
   mediaType,
   selectedId,
   onItemClick,
+  providerId,
+  onProviderChange,
+  countryCode,
+  onCountryChange,
 }: Props) {
-  const [providerId, setProviderId] = useState<number>(PROVIDERS[0].id);
-  const [countryCode, setCountryCode] = useState(detectCountry);
-
   const { items, loading, error } = useProviderDiscover(
     mediaType,
     providerId,
@@ -91,7 +94,7 @@ export function ProviderDiscoverSection({
           <select
             className="discovery__inline-select"
             value={providerId}
-            onChange={(e) => setProviderId(Number(e.target.value))}
+            onChange={(e) => onProviderChange(Number(e.target.value))}
             aria-label="Select streaming provider"
           >
             {PROVIDERS.map((p) => (
@@ -104,7 +107,7 @@ export function ProviderDiscoverSection({
           <select
             className="discovery__inline-select"
             value={countryCode}
-            onChange={(e) => setCountryCode(e.target.value)}
+            onChange={(e) => onCountryChange(e.target.value)}
             aria-label="Select country"
           >
             {COMMON_COUNTRIES.map((code) => (

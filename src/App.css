@@ -728,25 +728,34 @@
 
 .discovery__inline-select {
   appearance: none;
-  border: none;
-  border-bottom: 1.5px solid #7c6fe088;
-  background: transparent;
-  color: #7c6fe0;
-  font-size: inherit;
-  font-weight: inherit;
+  border: 1.5px solid #7c6fe044;
+  border-radius: 999px;
+  background: #7c6fe00d
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237c6fe0'/%3E%3C/svg%3E")
+    no-repeat right 0.7rem center;
+  background-size: 10px 6px;
+  color: #c4bfff;
+  font-size: 0.95em;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  padding: 0 0.15rem;
+  padding: 0.35rem 1.8rem 0.35rem 0.85rem;
   outline: none;
   transition:
-    border-color 0.15s,
-    background 0.15s;
+    border-color 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
 }
 
-.discovery__inline-select:hover,
+.discovery__inline-select:hover {
+  border-color: #7c6fe0;
+  background-color: #7c6fe01a;
+}
+
 .discovery__inline-select:focus {
   border-color: #7c6fe0;
-  background: #7c6fe012;
+  background-color: #7c6fe01a;
+  box-shadow: 0 0 0 2px #7c6fe033;
 }
 
 .discovery__inline-select option {

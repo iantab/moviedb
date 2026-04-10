@@ -1,4 +1,5 @@
 import axios from "axios";
+import { attachRateLimiter } from "../utils/rateLimiter";
 
 // In dev, route through the Vite proxy so requests are logged in the terminal.
 // In production, call TMDB directly.
@@ -17,5 +18,7 @@ const tmdbClient = axios.create({
     ? { Accept: "application/json" }
     : { Authorization: `Bearer ${API_KEY}`, Accept: "application/json" },
 });
+
+attachRateLimiter(tmdbClient);
 
 export default tmdbClient;
