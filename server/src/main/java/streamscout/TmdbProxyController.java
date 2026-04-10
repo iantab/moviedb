@@ -21,7 +21,11 @@ public class TmdbProxyController {
 
   public TmdbProxyController(TmdbService tmdbService) {
     this.tmdbService = tmdbService;
-    this.bucket = Bucket.builder().addLimit(Bandwidth.simple(40, Duration.ofSeconds(1))).build();
+    this.bucket =
+        Bucket.builder()
+            .addLimit(
+                Bandwidth.builder().capacity(40).refillGreedy(40, Duration.ofSeconds(1)).build())
+            .build();
   }
 
   @GetMapping("/trending/{mediaType}/week")

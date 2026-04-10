@@ -26,6 +26,7 @@ dependencies {
 	implementation("org.springframework.retry:spring-retry:2.0.11")
 	implementation("org.springframework:spring-aspects")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

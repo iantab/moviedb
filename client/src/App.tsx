@@ -36,6 +36,8 @@ function App() {
   const [query, setQuery] = useState("");
   // When false, the suggestions dropdown is suppressed (e.g. right after a selection)
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(true);
+  // True only after the user explicitly submits a search (Enter or button click)
+  const [hasSearched, setHasSearched] = useState(false);
 
   // Build Fuse instance over the current media type's corpus only — no cross-type leakage
   const fuse = useMemo(
@@ -81,6 +83,7 @@ function App() {
       setSuggestionsEnabled(true); // user is typing manually — show suggestions
       if (!q.trim()) {
         setSelectedItem(null);
+        setHasSearched(false);
         clear();
       }
     },
@@ -90,6 +93,7 @@ function App() {
   const handleSearch = useCallback(() => {
     if (query.trim()) {
       setSelectedItem(null);
+      setHasSearched(true);
       search(query, mediaType);
     }
   }, [query, mediaType, search]);
@@ -106,6 +110,7 @@ function App() {
       setMediaType(type);
       setSelectedItem(null);
       setQuery("");
+      setHasSearched(false);
       clear();
     },
     [clear],
@@ -115,7 +120,6 @@ function App() {
 
   const placeholder =
     mediaType === "movie" ? "Search for a movie..." : "Search for a TV show...";
-  const hasSearched = query.trim().length > 0;
   const noResults =
     mediaType === "movie"
       ? "No movies found. Try a different search."

@@ -18,10 +18,12 @@ public class TmdbService {
   private final HttpClient httpClient;
 
   public TmdbService(
-      @Value("${tmdb.api-key}") String apiKey, @Value("${tmdb.base-url}") String baseUrl) {
+      @Value("${tmdb.api-key}") String apiKey,
+      @Value("${tmdb.base-url}") String baseUrl,
+      HttpClient httpClient) {
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
-    this.httpClient = HttpClient.newHttpClient();
+    this.httpClient = httpClient;
   }
 
   @Cacheable(value = "trending", key = "#mediaType")
