@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useCallback, useState } from "react";
 import tmdbClient from "../services/tmdb";
 import type { MediaItem, MediaType } from "../types/tmdb";
 
@@ -36,6 +36,8 @@ export function useProviderDiscover(
   countryCode: string,
 ) {
   const [state, dispatch] = useReducer(providerDiscoverReducer, initialState);
+  const [retryCount, setRetryCount] = useState(0);
+  const retry = useCallback(() => setRetryCount((c) => c + 1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +66,7 @@ export function useProviderDiscover(
     return () => {
       cancelled = true;
     };
-  }, [mediaType, providerId, countryCode]);
+  }, [mediaType, providerId, countryCode, retryCount]);
 
-  return state;
+  return { ...state, retry };
 }

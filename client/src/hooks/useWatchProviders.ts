@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useCallback, useState } from "react";
 import tmdbClient from "../services/tmdb";
 import type { WatchProvidersResult, MediaType } from "../types/tmdb";
 
@@ -31,6 +31,8 @@ export function useWatchProviders(
   mediaType: MediaType,
 ) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [retryCount, setRetryCount] = useState(0);
+  const retry = useCallback(() => setRetryCount((c) => c + 1), []);
 
   useEffect(() => {
     if (mediaId === null) return;
@@ -55,10 +57,15 @@ export function useWatchProviders(
     return () => {
       cancelled = true;
     };
-  }, [mediaId, mediaType]);
+  }, [mediaId, mediaType, retryCount]);
 
   // Reset data when mediaId is cleared
   const resolvedData = mediaId === null ? null : state.data;
 
-  return { data: resolvedData, loading: state.loading, error: state.error };
+  return {
+    data: resolvedData,
+    loading: state.loading,
+    error: state.error,
+    retry,
+  };
 }

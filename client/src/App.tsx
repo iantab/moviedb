@@ -5,6 +5,7 @@ import { useMovieSearch } from "./hooks/useMovieSearch";
 import { SearchBar } from "./components/SearchBar";
 import { MovieCard } from "./components/MovieCard";
 import { MovieDetail } from "./components/MovieDetail";
+import { ErrorMessage } from "./components/ErrorMessage";
 import { MediaToggle } from "./components/MediaToggle";
 import {
   ProviderDiscoverSection,
@@ -45,21 +46,31 @@ function App() {
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(true);
   // True only after the user explicitly submits a search (Enter or button click)
   const [hasSearched, setHasSearched] = useState(false);
+  const [hashError, setHashError] = useState<string | null>(null);
 
   // Resolve hash route to a selected item (on mount or browser back/forward)
   useEffect(() => {
     if (hashRoute) {
       setHashLoading(true);
+      setHashError(null);
       tmdbClient
         .get(`/${hashRoute.mediaType}/${hashRoute.id}`)
         .then((res) => {
           setSelectedItem(res.data);
           setMediaType(hashRoute.mediaType);
         })
-        .catch(() => clearHash())
+        .catch((err) => {
+          const status = err?.response?.status;
+          setHashError(
+            status === 404
+              ? "This title could not be found. It may have been removed."
+              : "Failed to load this title. Please try again.",
+          );
+        })
         .finally(() => setHashLoading(false));
     } else {
       setSelectedItem(null);
+      setHashError(null);
       setHashLoading(false);
     }
   }, [hashRoute]);
@@ -205,7 +216,7 @@ function App() {
 
       <main className="app__main">
         <div ref={sentinelRef} />
-        {error && <p className="error-text">Error: {error}</p>}
+        {error && <ErrorMessage message={error} onRetry={handleSearch} />}
 
         {!selectedItem && results.length > 0 && (
           <div className="movie-grid">
@@ -226,7 +237,20 @@ function App() {
           </div>
         )}
 
-        {!selectedItem && !hasSearched && !hashLoading && (
+        {hashError && !selectedItem && (
+          <div className="app__empty">
+            <ErrorMessage
+              message={hashError}
+              retryLabel="Go home"
+              onRetry={() => {
+                clearHash();
+                setHashError(null);
+              }}
+            />
+          </div>
+        )}
+
+        {!selectedItem && !hasSearched && !hashLoading && !hashError && (
           <div className="discovery">
             <RecentlyViewedSection
               items={recentItems}

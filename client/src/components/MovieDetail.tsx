@@ -7,6 +7,7 @@ import { useRecommendations } from "../hooks/useRecommendations";
 import { CountrySelector } from "./CountrySelector";
 import { ProviderList } from "./ProviderList";
 import { MovieCard } from "./MovieCard";
+import { ErrorMessage } from "./ErrorMessage";
 import { COUNTRY_NAMES } from "../utils/countryNames";
 
 const NETFLIX_ID = 8;
@@ -21,7 +22,12 @@ interface Props {
 export function MovieDetail({ item, mediaType, onClose, onItemSelect }: Props) {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [netflixOnly, setNetflixOnly] = useState(false);
-  const { data, loading, error } = useWatchProviders(item.id, mediaType);
+  const {
+    data,
+    loading,
+    error,
+    retry: retryProviders,
+  } = useWatchProviders(item.id, mediaType);
   const { items: recommendations } = useRecommendations(item.id, mediaType);
 
   useEffect(() => {
@@ -144,7 +150,10 @@ export function MovieDetail({ item, mediaType, onClose, onItemSelect }: Props) {
 
           {loading && <p className="loading-text">Loading streaming data...</p>}
           {error && (
-            <p className="error-text">Failed to load streaming data: {error}</p>
+            <ErrorMessage
+              message={`Failed to load streaming data: ${error}`}
+              onRetry={retryProviders}
+            />
           )}
 
           {!loading && !error && data && availableCountries.length === 0 && (

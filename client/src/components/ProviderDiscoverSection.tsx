@@ -1,6 +1,7 @@
 import type { MediaItem, MediaType } from "../types/tmdb";
 import { useProviderDiscover } from "../hooks/useProviderDiscover";
 import { MovieCard } from "./MovieCard";
+import { ErrorMessage } from "./ErrorMessage";
 import { COUNTRY_NAMES } from "../utils/countryNames";
 
 export const PROVIDERS = [
@@ -76,7 +77,7 @@ export function ProviderDiscoverSection({
   countryCode,
   onCountryChange,
 }: Props) {
-  const { items, loading, error } = useProviderDiscover(
+  const { items, loading, error, retry } = useProviderDiscover(
     mediaType,
     providerId,
     countryCode,
@@ -120,7 +121,7 @@ export function ProviderDiscoverSection({
       </div>
 
       {loading && <p className="loading-text">Loading...</p>}
-      {error && <p className="error-text">{error}</p>}
+      {error && <ErrorMessage message={error} onRetry={retry} />}
 
       {!loading && !error && items.length > 0 && (
         <div className="movie-grid">

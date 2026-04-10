@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class TmdbProxyController {
 
   private static final Set<String> VALID_MEDIA_TYPES = Set.of("movie", "tv");
+  private static final ResponseEntity<String> RATE_LIMITED =
+      ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+          .body("{\"error\":\"Too many requests, please try again shortly\"}");
 
   private final TmdbService tmdbService;
   private final Bucket bucket;
@@ -36,7 +39,7 @@ public class TmdbProxyController {
     ResponseEntity<String> invalid = validateMediaType(mediaType);
     if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
-      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+      return RATE_LIMITED;
     }
     TmdbService.TmdbResponse response = tmdbService.getTrending(mediaType);
     return toResponseEntity(response);
@@ -47,7 +50,7 @@ public class TmdbProxyController {
     ResponseEntity<String> invalid = validateMediaType(mediaType);
     if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
-      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+      return RATE_LIMITED;
     }
     TmdbService.TmdbResponse response = tmdbService.getPopular(mediaType);
     return toResponseEntity(response);
@@ -59,7 +62,7 @@ public class TmdbProxyController {
     ResponseEntity<String> invalid = validateMediaType(mediaType);
     if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
-      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+      return RATE_LIMITED;
     }
     TmdbService.TmdbResponse response = tmdbService.search(mediaType, query);
     return toResponseEntity(response);
@@ -74,7 +77,7 @@ public class TmdbProxyController {
     ResponseEntity<String> invalid = validateMediaType(mediaType);
     if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
-      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+      return RATE_LIMITED;
     }
     TmdbService.TmdbResponse response = tmdbService.discover(mediaType, providerId, region);
     return toResponseEntity(response);
@@ -86,7 +89,7 @@ public class TmdbProxyController {
     ResponseEntity<String> invalid = validateMediaType(mediaType);
     if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
-      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+      return RATE_LIMITED;
     }
     TmdbService.TmdbResponse response = tmdbService.getWatchProviders(mediaType, mediaId);
     return toResponseEntity(response);
@@ -98,7 +101,7 @@ public class TmdbProxyController {
     ResponseEntity<String> invalid = validateMediaType(mediaType);
     if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
-      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+      return RATE_LIMITED;
     }
     TmdbService.TmdbResponse response = tmdbService.getRecommendations(mediaType, mediaId);
     return toResponseEntity(response);
@@ -110,7 +113,7 @@ public class TmdbProxyController {
     ResponseEntity<String> invalid = validateMediaType(mediaType);
     if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
-      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+      return RATE_LIMITED;
     }
     TmdbService.TmdbResponse response = tmdbService.getDetails(mediaType, mediaId);
     return toResponseEntity(response);
