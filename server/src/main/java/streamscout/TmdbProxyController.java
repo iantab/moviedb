@@ -3,6 +3,7 @@ package streamscout;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import java.time.Duration;
+import java.util.Set;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/tmdb")
 public class TmdbProxyController {
+
+  private static final Set<String> VALID_MEDIA_TYPES = Set.of("movie", "tv");
 
   private final TmdbService tmdbService;
   private final Bucket bucket;
@@ -30,6 +33,8 @@ public class TmdbProxyController {
 
   @GetMapping("/trending/{mediaType}/week")
   public ResponseEntity<String> trending(@PathVariable String mediaType) throws Exception {
+    ResponseEntity<String> invalid = validateMediaType(mediaType);
+    if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
       return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
@@ -39,6 +44,8 @@ public class TmdbProxyController {
 
   @GetMapping("/{mediaType}/popular")
   public ResponseEntity<String> popular(@PathVariable String mediaType) throws Exception {
+    ResponseEntity<String> invalid = validateMediaType(mediaType);
+    if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
       return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
@@ -49,6 +56,8 @@ public class TmdbProxyController {
   @GetMapping("/search/{mediaType}")
   public ResponseEntity<String> search(@PathVariable String mediaType, @RequestParam String query)
       throws Exception {
+    ResponseEntity<String> invalid = validateMediaType(mediaType);
+    if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
       return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
@@ -62,6 +71,8 @@ public class TmdbProxyController {
       @RequestParam("with_watch_providers") int providerId,
       @RequestParam("watch_region") String region)
       throws Exception {
+    ResponseEntity<String> invalid = validateMediaType(mediaType);
+    if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
       return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
@@ -72,6 +83,8 @@ public class TmdbProxyController {
   @GetMapping("/{mediaType}/{mediaId}/watch/providers")
   public ResponseEntity<String> watchProviders(
       @PathVariable String mediaType, @PathVariable int mediaId) throws Exception {
+    ResponseEntity<String> invalid = validateMediaType(mediaType);
+    if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
       return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
@@ -82,6 +95,8 @@ public class TmdbProxyController {
   @GetMapping("/{mediaType}/{mediaId}/recommendations")
   public ResponseEntity<String> recommendations(
       @PathVariable String mediaType, @PathVariable int mediaId) throws Exception {
+    ResponseEntity<String> invalid = validateMediaType(mediaType);
+    if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
       return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
@@ -92,11 +107,20 @@ public class TmdbProxyController {
   @GetMapping("/{mediaType}/{mediaId}")
   public ResponseEntity<String> details(@PathVariable String mediaType, @PathVariable int mediaId)
       throws Exception {
+    ResponseEntity<String> invalid = validateMediaType(mediaType);
+    if (invalid != null) return invalid;
     if (!bucket.tryConsume(1)) {
       return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
     TmdbService.TmdbResponse response = tmdbService.getDetails(mediaType, mediaId);
     return toResponseEntity(response);
+  }
+
+  private ResponseEntity<String> validateMediaType(String mediaType) {
+    if (!VALID_MEDIA_TYPES.contains(mediaType)) {
+      return ResponseEntity.badRequest().body("{\"error\":\"Invalid media type\"}");
+    }
+    return null;
   }
 
   private ResponseEntity<String> toResponseEntity(TmdbService.TmdbResponse response) {
