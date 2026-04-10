@@ -3,8 +3,10 @@ import type { MediaItem, MediaType } from "../types/tmdb";
 import { getTitle, getReleaseYear, isTvShow } from "../types/tmdb";
 import { IMAGE_BASE_URL } from "../services/tmdb";
 import { useWatchProviders } from "../hooks/useWatchProviders";
+import { useRecommendations } from "../hooks/useRecommendations";
 import { CountrySelector } from "./CountrySelector";
 import { ProviderList } from "./ProviderList";
+import { MovieCard } from "./MovieCard";
 import { COUNTRY_NAMES } from "../utils/countryNames";
 
 const NETFLIX_ID = 8;
@@ -13,12 +15,14 @@ interface Props {
   item: MediaItem;
   mediaType: MediaType;
   onClose: () => void;
+  onItemSelect: (item: MediaItem) => void;
 }
 
-export function MovieDetail({ item, mediaType, onClose }: Props) {
+export function MovieDetail({ item, mediaType, onClose, onItemSelect }: Props) {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [netflixOnly, setNetflixOnly] = useState(false);
   const { data, loading, error } = useWatchProviders(item.id, mediaType);
+  const { items: recommendations } = useRecommendations(item.id, mediaType);
 
   useEffect(() => {
     if (selectedCountry) {
@@ -172,6 +176,22 @@ export function MovieDetail({ item, mediaType, onClose }: Props) {
             </>
           )}
         </div>
+
+        {recommendations.length > 0 && (
+          <div className="movie-detail__recommendations">
+            <h3 className="movie-detail__section-title">Recommendations</h3>
+            <div className="scroll-row">
+              {recommendations.slice(0, 10).map((rec) => (
+                <MovieCard
+                  key={rec.id}
+                  item={rec}
+                  onClick={onItemSelect}
+                  selected={false}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

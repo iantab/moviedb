@@ -10,6 +10,10 @@ import {
   ProviderDiscoverSection,
   PROVIDERS,
 } from "./components/ProviderDiscoverSection";
+import { RecentlyViewedSection } from "./components/RecentlyViewedSection";
+import { useRecentlyViewed } from "./hooks/useRecentlyViewed";
+import { useHashRoute, setHash, clearHash } from "./hooks/useHashRouter";
+import tmdbClient from "./services/tmdb";
 import { detectCountry } from "./utils/detectCountry";
 import type { MediaItem, MediaType } from "./types/tmdb";
 import { getTitle } from "./types/tmdb";
@@ -28,7 +32,10 @@ function App() {
   } = useMovieSearch();
 
   useEffect(() => cancel, [cancel]);
+  const hashRoute = useHashRoute();
+  const { recentItems, addItem: addRecentlyViewed } = useRecentlyViewed();
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
+  const [hashLoading, setHashLoading] = useState(() => !!hashRoute);
   const [mediaType, setMediaType] = useState<MediaType>("movie");
   const [providerId, setProviderId] = useState<number>(PROVIDERS[0].id);
   const [countryCode, setCountryCode] = useState(detectCountry);
@@ -38,6 +45,24 @@ function App() {
   const [suggestionsEnabled, setSuggestionsEnabled] = useState(true);
   // True only after the user explicitly submits a search (Enter or button click)
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Resolve hash route to a selected item (on mount or browser back/forward)
+  useEffect(() => {
+    if (hashRoute) {
+      setHashLoading(true);
+      tmdbClient
+        .get(`/${hashRoute.mediaType}/${hashRoute.id}`)
+        .then((res) => {
+          setSelectedItem(res.data);
+          setMediaType(hashRoute.mediaType);
+        })
+        .catch(() => clearHash())
+        .finally(() => setHashLoading(false));
+    } else {
+      setSelectedItem(null);
+      setHashLoading(false);
+    }
+  }, [hashRoute]);
 
   // Build Fuse instance over the current media type's corpus only — no cross-type leakage
   const fuse = useMemo(
@@ -98,12 +123,26 @@ function App() {
     }
   }, [query, mediaType, search]);
 
+  const handleItemSelect = useCallback(
+    (item: MediaItem, itemMediaType?: MediaType) => {
+      setSelectedItem(item);
+      const effectiveType = itemMediaType ?? mediaType;
+      if (itemMediaType) setMediaType(itemMediaType);
+      addRecentlyViewed(item, effectiveType);
+      setHash(effectiveType, item.id);
+    },
+    [mediaType, addRecentlyViewed],
+  );
+
   // When user picks a suggestion, jump straight to that item's detail
-  const handleSuggestionSelect = useCallback((item: MediaItem) => {
-    setSuggestionsEnabled(false); // suppress dropdown after selection
-    setQuery(getTitle(item));
-    setSelectedItem(item);
-  }, []);
+  const handleSuggestionSelect = useCallback(
+    (item: MediaItem) => {
+      setSuggestionsEnabled(false); // suppress dropdown after selection
+      setQuery(getTitle(item));
+      handleItemSelect(item);
+    },
+    [handleItemSelect],
+  );
 
   const handleTypeChange = useCallback(
     (type: MediaType) => {
@@ -116,7 +155,10 @@ function App() {
     [clear],
   );
 
-  const handleClose = useCallback(() => setSelectedItem(null), []);
+  const handleClose = useCallback(() => {
+    setSelectedItem(null);
+    clearHash();
+  }, []);
 
   const placeholder =
     mediaType === "movie" ? "Search for a movie..." : "Search for a TV show...";
@@ -127,9 +169,24 @@ function App() {
 
   const selectedId = selectedItem?.id ?? null;
 
+  // Compact header when user scrolls past the sentinel
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) =>
+      setCompact(!entry.isIntersecting),
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="app">
-      <header className="app__header">
+      <header
+        className={`app__header${compact ? " app__header--compact" : ""}`}
+      >
         <h1 className="app__title">🎬 StreamScout</h1>
         <p className="app__subtitle">
           Search movies and TV shows and find where to watch them worldwide
@@ -147,6 +204,7 @@ function App() {
       </header>
 
       <main className="app__main">
+        <div ref={sentinelRef} />
         {error && <p className="error-text">Error: {error}</p>}
 
         {!selectedItem && results.length > 0 && (
@@ -155,19 +213,30 @@ function App() {
               <MovieCard
                 key={item.id}
                 item={item}
-                onClick={setSelectedItem}
+                onClick={handleItemSelect}
                 selected={selectedId === item.id}
               />
             ))}
           </div>
         )}
 
-        {!selectedItem && !hasSearched && (
+        {hashLoading && (
+          <div className="app__empty">
+            <p>Loading...</p>
+          </div>
+        )}
+
+        {!selectedItem && !hasSearched && !hashLoading && (
           <div className="discovery">
+            <RecentlyViewedSection
+              items={recentItems}
+              onItemClick={handleItemSelect}
+              selectedId={selectedId}
+            />
             <ProviderDiscoverSection
               mediaType={mediaType}
               selectedId={selectedId}
-              onItemClick={setSelectedItem}
+              onItemClick={handleItemSelect}
               providerId={providerId}
               onProviderChange={setProviderId}
               countryCode={countryCode}
@@ -187,6 +256,7 @@ function App() {
             item={selectedItem}
             mediaType={mediaType}
             onClose={handleClose}
+            onItemSelect={handleItemSelect}
           />
         )}
       </main>

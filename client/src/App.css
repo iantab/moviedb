@@ -27,6 +27,20 @@
   top: 0;
   z-index: 100;
   backdrop-filter: blur(8px);
+  transition: padding 0.2s;
+}
+
+.app__header--compact {
+  padding: 0.5rem 2rem;
+}
+
+.app__header--compact .app__title,
+.app__header--compact .app__subtitle {
+  display: none;
+}
+
+.app__header--compact .media-toggle {
+  margin-bottom: 0.4rem;
 }
 
 .app__title {
@@ -689,6 +703,32 @@
   word-break: break-word;
 }
 
+/* ─── Recently Viewed ─── */
+.recently-viewed {
+  margin-bottom: 0.5rem;
+}
+
+/* ─── Horizontal Scroll Row ─── */
+.scroll-row {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scroll-snap-type: x mandatory;
+}
+
+.scroll-row .movie-card {
+  flex: 0 0 140px;
+  scroll-snap-align: start;
+}
+
+/* ─── Recommendations ─── */
+.movie-detail__recommendations {
+  border-top: 1px solid #ffffff14;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
 /* ─── Utilities ─── */
 .loading-text {
   color: #8888aa;
@@ -783,5 +823,8 @@
   }
   .discovery .movie-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .scroll-row .movie-card {
+    flex: 0 0 120px;
   }
 }

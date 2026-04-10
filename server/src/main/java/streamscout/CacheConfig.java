@@ -21,6 +21,8 @@ public class CacheConfig {
     manager.registerCustomCache("search", buildCache(Duration.ofMinutes(30)));
     manager.registerCustomCache("providers", buildCache(Duration.ofHours(24)));
     manager.registerCustomCache("discover", buildCache(Duration.ofHours(2)));
+    manager.registerCustomCache("recommendations", buildCache(Duration.ofHours(2)));
+    manager.registerCustomCache("details", buildCache(Duration.ofHours(4)));
     return manager;
   }
 

@@ -83,6 +83,24 @@ public class TmdbService {
     return fetch("/" + mediaType + "/" + mediaId + "/watch/providers", null);
   }
 
+  @Cacheable(value = "recommendations", key = "#mediaType + ':' + #mediaId")
+  @Retryable(
+      retryFor = TmdbRateLimitException.class,
+      maxAttempts = 4,
+      backoff = @Backoff(delay = 1000, multiplier = 2))
+  public TmdbResponse getRecommendations(String mediaType, int mediaId) throws Exception {
+    return fetch("/" + mediaType + "/" + mediaId + "/recommendations", null);
+  }
+
+  @Cacheable(value = "details", key = "#mediaType + ':' + #mediaId")
+  @Retryable(
+      retryFor = TmdbRateLimitException.class,
+      maxAttempts = 4,
+      backoff = @Backoff(delay = 1000, multiplier = 2))
+  public TmdbResponse getDetails(String mediaType, int mediaId) throws Exception {
+    return fetch("/" + mediaType + "/" + mediaId, null);
+  }
+
   private TmdbResponse fetch(String path, String queryString) throws Exception {
     String targetUrl = baseUrl + path;
     if (queryString != null && !queryString.isEmpty()) {

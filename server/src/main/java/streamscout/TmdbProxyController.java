@@ -79,6 +79,26 @@ public class TmdbProxyController {
     return toResponseEntity(response);
   }
 
+  @GetMapping("/{mediaType}/{mediaId}/recommendations")
+  public ResponseEntity<String> recommendations(
+      @PathVariable String mediaType, @PathVariable int mediaId) throws Exception {
+    if (!bucket.tryConsume(1)) {
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+    }
+    TmdbService.TmdbResponse response = tmdbService.getRecommendations(mediaType, mediaId);
+    return toResponseEntity(response);
+  }
+
+  @GetMapping("/{mediaType}/{mediaId}")
+  public ResponseEntity<String> details(@PathVariable String mediaType, @PathVariable int mediaId)
+      throws Exception {
+    if (!bucket.tryConsume(1)) {
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+    }
+    TmdbService.TmdbResponse response = tmdbService.getDetails(mediaType, mediaId);
+    return toResponseEntity(response);
+  }
+
   private ResponseEntity<String> toResponseEntity(TmdbService.TmdbResponse response) {
     HttpHeaders headers = new HttpHeaders();
     headers.set("Content-Type", "application/json");
