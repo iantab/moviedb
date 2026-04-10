@@ -6,6 +6,7 @@ import { SearchBar } from "./components/SearchBar";
 import { MovieCard } from "./components/MovieCard";
 import { MovieDetail } from "./components/MovieDetail";
 import { ErrorMessage } from "./components/ErrorMessage";
+import { LoadingDots } from "./components/LoadingDots";
 import { MediaToggle } from "./components/MediaToggle";
 import {
   ProviderDiscoverSection,
@@ -233,7 +234,7 @@ function App() {
 
         {hashLoading && (
           <div className="app__empty">
-            <p>Loading...</p>
+            <LoadingDots />
           </div>
         )}
 

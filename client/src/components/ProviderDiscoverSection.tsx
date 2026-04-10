@@ -2,6 +2,7 @@ import type { MediaItem, MediaType } from "../types/tmdb";
 import { useProviderDiscover } from "../hooks/useProviderDiscover";
 import { MovieCard } from "./MovieCard";
 import { ErrorMessage } from "./ErrorMessage";
+import { LoadingDots } from "./LoadingDots";
 import { COUNTRY_NAMES } from "../utils/countryNames";
 
 export const PROVIDERS = [
@@ -120,7 +121,7 @@ export function ProviderDiscoverSection({
         </h2>
       </div>
 
-      {loading && <p className="loading-text">Loading...</p>}
+      {loading && <LoadingDots />}
       {error && <ErrorMessage message={error} onRetry={retry} />}
 
       {!loading && !error && items.length > 0 && (
