@@ -1,5 +1,4 @@
 import axios from "axios";
-import { attachRateLimiter } from "../utils/rateLimiter";
 
 // In dev, the Vite proxy forwards /api/tmdb to the local Spring Boot server.
 // In production, call the deployed proxy server directly.
@@ -14,7 +13,5 @@ const tmdbClient = axios.create({
   baseURL: BASE_URL,
   headers: { Accept: "application/json" },
 });
-
-attachRateLimiter(tmdbClient);
 
 export default tmdbClient;

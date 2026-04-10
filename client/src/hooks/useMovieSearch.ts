@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import tmdbClient from "../services/tmdb";
 import type { MediaItem, MediaType } from "../types/tmdb";
-import { getCached, setCached } from "../utils/cache";
 
 type Corpus = Record<MediaType, MediaItem[]>;
 
@@ -29,13 +28,6 @@ export function useMovieSearch() {
       setResults([]);
       return;
     }
-    const cacheKey = `search:${mediaType}:${query.trim().toLowerCase()}`;
-    const cached = getCached<MediaItem[]>(cacheKey);
-    if (cached) {
-      setResults(cached);
-      setCorpus((prev) => mergeIntoCorpus(prev, mediaType, cached));
-      return;
-    }
     cancelledRef.current = false;
     setLoading(true);
     setError(null);
@@ -50,7 +42,6 @@ export function useMovieSearch() {
       .then((res) => {
         if (!cancelledRef.current) {
           const items: MediaItem[] = res.data.results;
-          setCached(cacheKey, items);
           setResults(items);
           setCorpus((prev) => mergeIntoCorpus(prev, mediaType, items));
         }
@@ -76,12 +67,6 @@ export function useMovieSearch() {
   // Silently fetches into the correct corpus slice — does not touch results/loading/error.
   const populateCorpus = useCallback((query: string, mediaType: MediaType) => {
     if (!query.trim()) return;
-    const cacheKey = `search:${mediaType}:${query.trim().toLowerCase()}`;
-    const cached = getCached<MediaItem[]>(cacheKey);
-    if (cached) {
-      setCorpus((prev) => mergeIntoCorpus(prev, mediaType, cached));
-      return;
-    }
     const endpoint = mediaType === "tv" ? "/search/tv" : "/search/movie";
     console.log(
       `[TMDB API] populateCorpus/${mediaType === "tv" ? "tv" : "movie"} — query: "${query}"`,
@@ -92,7 +77,6 @@ export function useMovieSearch() {
       })
       .then((res) => {
         const items: MediaItem[] = res.data.results;
-        setCached(cacheKey, items);
         setCorpus((prev) => mergeIntoCorpus(prev, mediaType, items));
       })
       .catch(() => {

@@ -3,7 +3,6 @@
  */
 import { renderHook, waitFor } from "@testing-library/react";
 import { useDiscovery } from "../../hooks/useDiscovery";
-import { getCached, setCached } from "../../utils/cache";
 import tmdbClient from "../../services/tmdb";
 import type { Movie, MediaType } from "../../types/tmdb";
 
@@ -13,14 +12,7 @@ jest.mock("../../services/tmdb", () => ({
   IMAGE_BASE_URL: "https://img.tmdb.org",
 }));
 
-jest.mock("../../utils/cache", () => ({
-  getCached: jest.fn(),
-  setCached: jest.fn(),
-}));
-
 const mockGet = tmdbClient.get as jest.Mock;
-const mockGetCached = getCached as jest.Mock;
-const mockSetCached = setCached as jest.Mock;
 
 const trendingMovies: Movie[] = [
   {
@@ -53,40 +45,7 @@ beforeEach(() => {
 });
 
 describe("useDiscovery", () => {
-  it("returns cached trending data without API call on cache hit", async () => {
-    mockGetCached.mockImplementation((key: string) => {
-      if (key === "trending:movie:week") return trendingMovies;
-      return undefined;
-    });
-    mockGet.mockResolvedValue({ data: { results: popularMovies } });
-
-    const { result } = renderHook(() => useDiscovery("movie"));
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.trending).toBe(trendingMovies);
-    // Only popular endpoint should have been called
-    expect(mockGet).toHaveBeenCalledTimes(1);
-    expect(mockGet).toHaveBeenCalledWith("/movie/popular");
-  });
-
-  it("returns cached popular data without API call on cache hit", async () => {
-    mockGetCached.mockImplementation((key: string) => {
-      if (key === "popular:movie") return popularMovies;
-      return undefined;
-    });
-    mockGet.mockResolvedValue({ data: { results: trendingMovies } });
-
-    const { result } = renderHook(() => useDiscovery("movie"));
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.popular).toBe(popularMovies);
-    // Only trending endpoint should have been called
-    expect(mockGet).toHaveBeenCalledTimes(1);
-    expect(mockGet).toHaveBeenCalledWith("/trending/movie/week");
-  });
-
   it("calls correct endpoints for movie mediaType", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     renderHook(() => useDiscovery("movie"));
@@ -97,7 +56,6 @@ describe("useDiscovery", () => {
   });
 
   it("calls correct endpoints for tv mediaType", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     renderHook(() => useDiscovery("tv"));
@@ -108,7 +66,6 @@ describe("useDiscovery", () => {
   });
 
   it("sets loading: true while fetching, false when done", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     const { result } = renderHook(() => useDiscovery("movie"));
@@ -119,8 +76,7 @@ describe("useDiscovery", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
-  it("stores results via setCached with correct cache keys", async () => {
-    mockGetCached.mockReturnValue(undefined);
+  it("populates trending and popular on success", async () => {
     mockGet.mockImplementation((url: string) => {
       if (url.includes("trending"))
         return Promise.resolve({ data: { results: trendingMovies } });
@@ -130,15 +86,11 @@ describe("useDiscovery", () => {
     const { result } = renderHook(() => useDiscovery("movie"));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(mockSetCached).toHaveBeenCalledWith(
-      "trending:movie:week",
-      trendingMovies,
-    );
-    expect(mockSetCached).toHaveBeenCalledWith("popular:movie", popularMovies);
+    expect(result.current.trending).toEqual(trendingMovies);
+    expect(result.current.popular).toEqual(popularMovies);
   });
 
   it("sets error on trending API failure", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockImplementation((url: string) => {
       if (url.includes("trending"))
         return Promise.reject(new Error("Trending failed"));
@@ -151,7 +103,6 @@ describe("useDiscovery", () => {
   });
 
   it("sets error on popular API failure", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockImplementation((url: string) => {
       if (url.includes("popular"))
         return Promise.reject(new Error("Popular failed"));
@@ -164,7 +115,6 @@ describe("useDiscovery", () => {
   });
 
   it("sets fallback error message on non-Error rejection", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockImplementation((url: string) => {
       if (url.includes("trending")) return Promise.reject("string error");
       return Promise.resolve({ data: { results: [] } });
@@ -178,7 +128,6 @@ describe("useDiscovery", () => {
   });
 
   it("re-fetches when mediaType changes", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     const { rerender } = renderHook(
@@ -196,7 +145,6 @@ describe("useDiscovery", () => {
   });
 
   it("cancelled flag on unmount prevents state update", async () => {
-    mockGetCached.mockReturnValue(undefined);
     let resolveTrending!: (v: unknown) => void;
     let resolvePopular!: (v: unknown) => void;
     mockGet.mockImplementation((url: string) => {

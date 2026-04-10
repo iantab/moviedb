@@ -1,60 +1,83 @@
 package streamscout;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-import org.springframework.beans.factory.annotation.Value;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import java.time.Duration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/tmdb")
 public class TmdbProxyController {
 
-    private final String apiKey;
-    private final String baseUrl;
-    private final HttpClient httpClient;
+  private final TmdbService tmdbService;
+  private final Bucket bucket;
 
-    public TmdbProxyController(
-            @Value("${tmdb.api-key}") String apiKey,
-            @Value("${tmdb.base-url}") String baseUrl) {
-        this.apiKey = apiKey;
-        this.baseUrl = baseUrl;
-        this.httpClient = HttpClient.newHttpClient();
+  public TmdbProxyController(TmdbService tmdbService) {
+    this.tmdbService = tmdbService;
+    this.bucket = Bucket.builder().addLimit(Bandwidth.simple(40, Duration.ofSeconds(1))).build();
+  }
+
+  @GetMapping("/trending/{mediaType}/week")
+  public ResponseEntity<String> trending(@PathVariable String mediaType) throws Exception {
+    if (!bucket.tryConsume(1)) {
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
+    TmdbService.TmdbResponse response = tmdbService.getTrending(mediaType);
+    return toResponseEntity(response);
+  }
 
-    @GetMapping("/**")
-    public ResponseEntity<String> proxy(HttpServletRequest request) throws Exception {
-        String path = request.getRequestURI().substring("/api/tmdb".length());
-        String query = request.getQueryString();
-
-        String targetUrl = baseUrl + path;
-        if (query != null && !query.isEmpty()) {
-            targetUrl += "?" + query;
-        }
-
-        HttpRequest tmdbRequest = HttpRequest.newBuilder()
-                .uri(URI.create(targetUrl))
-                .header("Authorization", "Bearer " + apiKey)
-                .header("Accept", "application/json")
-                .GET()
-                .build();
-
-        HttpResponse<String> tmdbResponse = httpClient.send(tmdbRequest, HttpResponse.BodyHandlers.ofString());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "application/json");
-
-        return ResponseEntity
-                .status(tmdbResponse.statusCode())
-                .headers(headers)
-                .body(tmdbResponse.body());
+  @GetMapping("/{mediaType}/popular")
+  public ResponseEntity<String> popular(@PathVariable String mediaType) throws Exception {
+    if (!bucket.tryConsume(1)) {
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
+    TmdbService.TmdbResponse response = tmdbService.getPopular(mediaType);
+    return toResponseEntity(response);
+  }
+
+  @GetMapping("/search/{mediaType}")
+  public ResponseEntity<String> search(@PathVariable String mediaType, @RequestParam String query)
+      throws Exception {
+    if (!bucket.tryConsume(1)) {
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+    }
+    TmdbService.TmdbResponse response = tmdbService.search(mediaType, query);
+    return toResponseEntity(response);
+  }
+
+  @GetMapping("/discover/{mediaType}")
+  public ResponseEntity<String> discover(
+      @PathVariable String mediaType,
+      @RequestParam("with_watch_providers") int providerId,
+      @RequestParam("watch_region") String region)
+      throws Exception {
+    if (!bucket.tryConsume(1)) {
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+    }
+    TmdbService.TmdbResponse response = tmdbService.discover(mediaType, providerId, region);
+    return toResponseEntity(response);
+  }
+
+  @GetMapping("/{mediaType}/{mediaId}/watch/providers")
+  public ResponseEntity<String> watchProviders(
+      @PathVariable String mediaType, @PathVariable int mediaId) throws Exception {
+    if (!bucket.tryConsume(1)) {
+      return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+    }
+    TmdbService.TmdbResponse response = tmdbService.getWatchProviders(mediaType, mediaId);
+    return toResponseEntity(response);
+  }
+
+  private ResponseEntity<String> toResponseEntity(TmdbService.TmdbResponse response) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Content-Type", "application/json");
+    return ResponseEntity.status(response.statusCode()).headers(headers).body(response.body());
+  }
 }

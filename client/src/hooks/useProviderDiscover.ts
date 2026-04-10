@@ -1,7 +1,6 @@
 import { useReducer, useEffect } from "react";
 import tmdbClient from "../services/tmdb";
 import type { MediaItem, MediaType } from "../types/tmdb";
-import { getCached, setCached } from "../utils/cache";
 
 type State = {
   items: MediaItem[];
@@ -39,12 +38,6 @@ export function useProviderDiscover(
   const [state, dispatch] = useReducer(providerDiscoverReducer, initialState);
 
   useEffect(() => {
-    const cacheKey = `discover:${mediaType}:${providerId}:${countryCode}`;
-    const cached = getCached<MediaItem[]>(cacheKey);
-    if (cached) {
-      dispatch({ type: "FETCH_SUCCESS", payload: cached });
-      return;
-    }
     let cancelled = false;
     dispatch({ type: "FETCH_START" });
     tmdbClient
@@ -57,7 +50,6 @@ export function useProviderDiscover(
       })
       .then((res) => {
         if (!cancelled) {
-          setCached(cacheKey, res.data.results);
           dispatch({ type: "FETCH_SUCCESS", payload: res.data.results });
         }
       })

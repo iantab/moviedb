@@ -1,7 +1,6 @@
 import { useReducer, useEffect } from "react";
 import tmdbClient from "../services/tmdb";
 import type { WatchProvidersResult, MediaType } from "../types/tmdb";
-import { getCached, setCached } from "../utils/cache";
 
 type State = {
   data: WatchProvidersResult | null;
@@ -35,12 +34,6 @@ export function useWatchProviders(
 
   useEffect(() => {
     if (mediaId === null) return;
-    const cacheKey = `providers:${mediaType}:${mediaId}`;
-    const cached = getCached<WatchProvidersResult>(cacheKey);
-    if (cached) {
-      dispatch({ type: "FETCH_SUCCESS", payload: cached });
-      return;
-    }
     let cancelled = false;
     dispatch({ type: "FETCH_START" });
     const endpoint = `/${mediaType}/${mediaId}/watch/providers`;
@@ -48,7 +41,6 @@ export function useWatchProviders(
       .get(endpoint)
       .then((res) => {
         if (!cancelled) {
-          setCached(cacheKey, res.data);
           dispatch({ type: "FETCH_SUCCESS", payload: res.data });
         }
       })

@@ -3,7 +3,6 @@
  */
 import { renderHook, waitFor } from "@testing-library/react";
 import { useProviderDiscover } from "../../hooks/useProviderDiscover";
-import { getCached, setCached } from "../../utils/cache";
 import tmdbClient from "../../services/tmdb";
 import type { Movie, MediaType } from "../../types/tmdb";
 
@@ -13,14 +12,7 @@ jest.mock("../../services/tmdb", () => ({
   IMAGE_BASE_URL: "https://img.tmdb.org",
 }));
 
-jest.mock("../../utils/cache", () => ({
-  getCached: jest.fn(),
-  setCached: jest.fn(),
-}));
-
 const mockGet = tmdbClient.get as jest.Mock;
-const mockGetCached = getCached as jest.Mock;
-const mockSetCached = setCached as jest.Mock;
 
 const sampleMovies: Movie[] = [
   {
@@ -40,21 +32,7 @@ beforeEach(() => {
 });
 
 describe("useProviderDiscover", () => {
-  it("returns cached data without API call on cache hit", async () => {
-    mockGetCached.mockImplementation((key: string) => {
-      if (key === "discover:movie:8:US") return sampleMovies;
-      return undefined;
-    });
-
-    const { result } = renderHook(() => useProviderDiscover("movie", 8, "US"));
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.items).toBe(sampleMovies);
-    expect(mockGet).not.toHaveBeenCalled();
-  });
-
-  it("calls /discover/{mediaType} with correct params on cache miss", async () => {
-    mockGetCached.mockReturnValue(undefined);
+  it("calls /discover/{mediaType} with correct params", async () => {
     mockGet.mockResolvedValue({ data: { results: sampleMovies } });
 
     const { result } = renderHook(() => useProviderDiscover("movie", 8, "US"));
@@ -71,7 +49,6 @@ describe("useProviderDiscover", () => {
   });
 
   it("calls correct endpoint for tv mediaType", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     renderHook(() => useProviderDiscover("tv", 337, "GB"));
@@ -86,21 +63,7 @@ describe("useProviderDiscover", () => {
     });
   });
 
-  it("stores results via setCached with correct key", async () => {
-    mockGetCached.mockReturnValue(undefined);
-    mockGet.mockResolvedValue({ data: { results: sampleMovies } });
-
-    const { result } = renderHook(() => useProviderDiscover("movie", 8, "US"));
-
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(mockSetCached).toHaveBeenCalledWith(
-      "discover:movie:8:US",
-      sampleMovies,
-    );
-  });
-
   it("sets loading: true while fetching, false when done", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     const { result } = renderHook(() => useProviderDiscover("movie", 8, "US"));
@@ -110,7 +73,6 @@ describe("useProviderDiscover", () => {
   });
 
   it("sets error on API failure", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useProviderDiscover("movie", 8, "US"));
@@ -119,7 +81,6 @@ describe("useProviderDiscover", () => {
   });
 
   it("sets fallback error message on non-Error rejection", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockRejectedValue("string error");
 
     const { result } = renderHook(() => useProviderDiscover("movie", 8, "US"));
@@ -130,7 +91,6 @@ describe("useProviderDiscover", () => {
   });
 
   it("re-fetches when providerId changes", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     const { rerender } = renderHook(
@@ -154,7 +114,6 @@ describe("useProviderDiscover", () => {
   });
 
   it("re-fetches when countryCode changes", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     const { rerender } = renderHook(
@@ -171,7 +130,6 @@ describe("useProviderDiscover", () => {
   });
 
   it("re-fetches when mediaType changes", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: { results: [] } });
 
     const { rerender } = renderHook(
@@ -194,7 +152,6 @@ describe("useProviderDiscover", () => {
   });
 
   it("cancelled flag on unmount prevents state update", async () => {
-    mockGetCached.mockReturnValue(undefined);
     let resolve!: (v: unknown) => void;
     mockGet.mockImplementation(
       () =>

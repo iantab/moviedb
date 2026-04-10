@@ -1,7 +1,6 @@
 import { useReducer, useEffect } from "react";
 import tmdbClient from "../services/tmdb";
 import type { MediaItem, MediaType } from "../types/tmdb";
-import { getCached, setCached } from "../utils/cache";
 
 type State = {
   trending: MediaItem[];
@@ -49,19 +48,12 @@ export function useDiscovery(mediaType: MediaType) {
 
   // Fetch trending
   useEffect(() => {
-    const cacheKey = `trending:${mediaType}:week`;
-    const cached = getCached<MediaItem[]>(cacheKey);
-    if (cached) {
-      dispatch({ type: "TRENDING_SUCCESS", payload: cached });
-      return;
-    }
     let cancelled = false;
     dispatch({ type: "TRENDING_START" });
     tmdbClient
       .get(`/trending/${mediaType}/week`)
       .then((res) => {
         if (!cancelled) {
-          setCached(cacheKey, res.data.results);
           dispatch({ type: "TRENDING_SUCCESS", payload: res.data.results });
         }
       })
@@ -80,19 +72,12 @@ export function useDiscovery(mediaType: MediaType) {
 
   // Fetch popular
   useEffect(() => {
-    const cacheKey = `popular:${mediaType}`;
-    const cached = getCached<MediaItem[]>(cacheKey);
-    if (cached) {
-      dispatch({ type: "POPULAR_SUCCESS", payload: cached });
-      return;
-    }
     let cancelled = false;
     dispatch({ type: "POPULAR_START" });
     tmdbClient
       .get(`/${mediaType}/popular`)
       .then((res) => {
         if (!cancelled) {
-          setCached(cacheKey, res.data.results);
           dispatch({ type: "POPULAR_SUCCESS", payload: res.data.results });
         }
       })

@@ -3,7 +3,6 @@
  */
 import { renderHook, waitFor } from "@testing-library/react";
 import { useWatchProviders } from "../../hooks/useWatchProviders";
-import { getCached, setCached } from "../../utils/cache";
 import tmdbClient from "../../services/tmdb";
 import type { WatchProvidersResult } from "../../types/tmdb";
 
@@ -13,14 +12,7 @@ jest.mock("../../services/tmdb", () => ({
   IMAGE_BASE_URL: "https://img.tmdb.org",
 }));
 
-jest.mock("../../utils/cache", () => ({
-  getCached: jest.fn(),
-  setCached: jest.fn(),
-}));
-
 const mockGet = tmdbClient.get as jest.Mock;
-const mockGetCached = getCached as jest.Mock;
-const mockSetCached = setCached as jest.Mock;
 
 const sampleData: WatchProvidersResult = {
   id: 42,
@@ -51,19 +43,7 @@ describe("useWatchProviders", () => {
     expect(mockGet).not.toHaveBeenCalled();
   });
 
-  it("returns cached data immediately on cache hit (no API call)", async () => {
-    mockGetCached.mockReturnValue(sampleData);
-
-    const { result } = renderHook(() => useWatchProviders(42, "movie"));
-
-    await waitFor(() => expect(result.current.data).toBe(sampleData));
-    expect(mockGet).not.toHaveBeenCalled();
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
-  });
-
-  it("calls tmdbClient.get with the correct endpoint on cache miss", async () => {
-    mockGetCached.mockReturnValue(undefined);
+  it("calls tmdbClient.get with the correct endpoint", async () => {
     mockGet.mockResolvedValue({ data: sampleData });
 
     const { result } = renderHook(() => useWatchProviders(42, "movie"));
@@ -73,7 +53,6 @@ describe("useWatchProviders", () => {
   });
 
   it("uses the tv endpoint when mediaType is tv", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: sampleData });
 
     const { result } = renderHook(() => useWatchProviders(10, "tv"));
@@ -83,7 +62,6 @@ describe("useWatchProviders", () => {
   });
 
   it("sets data, clears loading and error on successful fetch", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: sampleData });
 
     const { result } = renderHook(() => useWatchProviders(42, "movie"));
@@ -91,14 +69,9 @@ describe("useWatchProviders", () => {
     await waitFor(() => expect(result.current.data).toBe(sampleData));
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
-    expect(mockSetCached).toHaveBeenCalledWith(
-      "providers:movie:42",
-      sampleData,
-    );
   });
 
   it("sets error message on failed fetch (Error instance)", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useWatchProviders(42, "movie"));
@@ -109,7 +82,6 @@ describe("useWatchProviders", () => {
   });
 
   it('sets error to "Failed to load providers" on non-Error rejection', async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockRejectedValue("some string error");
 
     const { result } = renderHook(() => useWatchProviders(42, "movie"));
@@ -120,7 +92,6 @@ describe("useWatchProviders", () => {
   });
 
   it("triggers a new fetch when mediaId changes", async () => {
-    mockGetCached.mockReturnValue(undefined);
     const secondData: WatchProvidersResult = { id: 99, results: {} };
     mockGet
       .mockResolvedValueOnce({ data: sampleData })
@@ -141,7 +112,6 @@ describe("useWatchProviders", () => {
   });
 
   it("cancelled flag on unmount prevents state update (no act warnings)", async () => {
-    mockGetCached.mockReturnValue(undefined);
     let resolveGet!: (v: unknown) => void;
     const pending = new Promise((r) => {
       resolveGet = r;
@@ -161,7 +131,6 @@ describe("useWatchProviders", () => {
   });
 
   it("resolvedData is null when mediaId is set back to null", async () => {
-    mockGetCached.mockReturnValue(undefined);
     mockGet.mockResolvedValue({ data: sampleData });
 
     const { result, rerender } = renderHook(

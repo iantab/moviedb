@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "4.0.5"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("com.diffplug.spotless") version "8.4.0"
 }
 
 group = "streamscout"
@@ -19,8 +20,22 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-cache")
+	implementation("com.github.ben-manes.caffeine:caffeine")
+	implementation("com.bucket4j:bucket4j_jdk17-core:8.14.0")
+	implementation("org.springframework.retry:spring-retry:2.0.11")
+	implementation("org.springframework:spring-aspects")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+spotless {
+	java {
+		googleJavaFormat()
+		expandWildcardImports()
+		removeUnusedImports()
+		forbidModuleImports()
+	}
 }
 
 tasks.withType<Test> {
