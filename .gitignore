@@ -37,4 +37,5 @@ config.yaml
 .env
 .env.local
 .env.*.local
+application-local.yaml
 

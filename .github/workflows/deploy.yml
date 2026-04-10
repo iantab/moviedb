@@ -11,6 +11,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,12 +27,11 @@ jobs:
       - name: Build
         run: bun run build
         env:
-          VITE_TMDB_API_KEY: ${{ secrets.VITE_TMDB_API_KEY }}
-          VITE_TMDB_BASE_URL: https://api.themoviedb.org/3
           VITE_TMDB_IMAGE_BASE_URL: https://image.tmdb.org/t/p
+          VITE_PROXY_BASE_URL: ${{ secrets.VITE_PROXY_BASE_URL }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./client/dist
