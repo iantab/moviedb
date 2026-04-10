@@ -42,7 +42,7 @@ React (GitHub Pages)  →  Spring Boot Proxy (Render)  →  TMDB API
 - Java 25 + [Spring Boot 4.0.5](https://spring.io/projects/spring-boot) (Gradle)
 - [Caffeine](https://github.com/ben-manes/caffeine) for response caching
 - [Bucket4j](https://bucket4j.com/) for rate limiting
-- [Spring Retry](https://github.com/spring-projects/spring-retry) for retry with exponential backoff
+- Spring Framework's built-in [resilience annotations](https://docs.spring.io/spring-framework/reference/core/resilience.html) for retry with exponential backoff
 - Docker for containerized deployment
 
 ## Getting Started

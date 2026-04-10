@@ -6,8 +6,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,28 +26,19 @@ public class TmdbService {
   }
 
   @Cacheable(value = "trending", key = "#mediaType")
-  @Retryable(
-      retryFor = TmdbRateLimitException.class,
-      maxAttempts = 4,
-      backoff = @Backoff(delay = 1000, multiplier = 2))
+  @Retryable(includes = TmdbRateLimitException.class, maxRetries = 3, delay = 1000, multiplier = 2)
   public TmdbResponse getTrending(String mediaType) throws Exception {
     return fetch("/trending/" + mediaType + "/week", null);
   }
 
   @Cacheable(value = "popular", key = "#mediaType")
-  @Retryable(
-      retryFor = TmdbRateLimitException.class,
-      maxAttempts = 4,
-      backoff = @Backoff(delay = 1000, multiplier = 2))
+  @Retryable(includes = TmdbRateLimitException.class, maxRetries = 3, delay = 1000, multiplier = 2)
   public TmdbResponse getPopular(String mediaType) throws Exception {
     return fetch("/" + mediaType + "/popular", null);
   }
 
   @Cacheable(value = "search", key = "#mediaType + ':' + #query")
-  @Retryable(
-      retryFor = TmdbRateLimitException.class,
-      maxAttempts = 4,
-      backoff = @Backoff(delay = 1000, multiplier = 2))
+  @Retryable(includes = TmdbRateLimitException.class, maxRetries = 3, delay = 1000, multiplier = 2)
   public TmdbResponse search(String mediaType, String query) throws Exception {
     String endpoint = "/search/" + mediaType;
     String queryString =
@@ -59,10 +49,7 @@ public class TmdbService {
   }
 
   @Cacheable(value = "discover", key = "#mediaType + ':' + #providerId + ':' + #region")
-  @Retryable(
-      retryFor = TmdbRateLimitException.class,
-      maxAttempts = 4,
-      backoff = @Backoff(delay = 1000, multiplier = 2))
+  @Retryable(includes = TmdbRateLimitException.class, maxRetries = 3, delay = 1000, multiplier = 2)
   public TmdbResponse discover(String mediaType, int providerId, String region) throws Exception {
     String endpoint = "/discover/" + mediaType;
     String queryString =
@@ -75,28 +62,19 @@ public class TmdbService {
   }
 
   @Cacheable(value = "providers", key = "#mediaType + ':' + #mediaId")
-  @Retryable(
-      retryFor = TmdbRateLimitException.class,
-      maxAttempts = 4,
-      backoff = @Backoff(delay = 1000, multiplier = 2))
+  @Retryable(includes = TmdbRateLimitException.class, maxRetries = 3, delay = 1000, multiplier = 2)
   public TmdbResponse getWatchProviders(String mediaType, int mediaId) throws Exception {
     return fetch("/" + mediaType + "/" + mediaId + "/watch/providers", null);
   }
 
   @Cacheable(value = "recommendations", key = "#mediaType + ':' + #mediaId")
-  @Retryable(
-      retryFor = TmdbRateLimitException.class,
-      maxAttempts = 4,
-      backoff = @Backoff(delay = 1000, multiplier = 2))
+  @Retryable(includes = TmdbRateLimitException.class, maxRetries = 3, delay = 1000, multiplier = 2)
   public TmdbResponse getRecommendations(String mediaType, int mediaId) throws Exception {
     return fetch("/" + mediaType + "/" + mediaId + "/recommendations", null);
   }
 
   @Cacheable(value = "details", key = "#mediaType + ':' + #mediaId")
-  @Retryable(
-      retryFor = TmdbRateLimitException.class,
-      maxAttempts = 4,
-      backoff = @Backoff(delay = 1000, multiplier = 2))
+  @Retryable(includes = TmdbRateLimitException.class, maxRetries = 3, delay = 1000, multiplier = 2)
   public TmdbResponse getDetails(String mediaType, int mediaId) throws Exception {
     return fetch("/" + mediaType + "/" + mediaId, null);
   }

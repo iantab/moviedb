@@ -23,8 +23,6 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-cache")
 	implementation("com.github.ben-manes.caffeine:caffeine")
 	implementation("com.bucket4j:bucket4j_jdk17-core:8.14.0")
-	implementation("org.springframework.retry:spring-retry:2.0.11")
-	implementation("org.springframework:spring-aspects")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
