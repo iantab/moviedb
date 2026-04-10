@@ -1,7 +1,7 @@
 # 🎬 StreamScout
 
 [![Deploy to GitHub Pages](https://github.com/iantab/moviedb/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/iantab/moviedb/actions/workflows/deploy.yml)
-[![Backend on Render](https://img.shields.io/badge/backend-Render-46E3B7?logo=render)](https://streamscout-api.onrender.com)
+[![Backend Status](https://img.shields.io/website?url=https%3A%2F%2Fstreamscout-api.onrender.com%2Fapi%2Fhealth&label=backend)](https://streamscout-api.onrender.com/api/health)
 
 🌐 **Live demo:** [iantab.github.io/moviedb](https://iantab.github.io/moviedb)
 
