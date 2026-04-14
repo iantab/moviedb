@@ -1,91 +1,91 @@
-# 🎬 StreamScout
+# StreamScout
 
-[![Deploy to GitHub Pages](https://github.com/iantab/moviedb/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/iantab/moviedb/actions/workflows/deploy.yml)
-[![Backend Status](https://img.shields.io/website?url=https%3A%2F%2Fstreamscout-api.onrender.com%2Fapi%2Fhealth&label=backend)](https://streamscout-api.onrender.com/api/health)
-
-🌐 **Live demo:** [iantab.github.io/moviedb](https://iantab.github.io/moviedb)
-
-A React + TypeScript app backed by a Spring Boot proxy server that lets you search for movies and TV shows and find where to stream them around the world, powered by the [TMDB API](https://www.themoviedb.org/).
-
-## Features
-
-- 🔥 **Trending & Popular** — homepage displays trending and popular movies/TV shows powered by TMDB, updated weekly
-- 🔍 **Movie & TV search** — search for any movie or TV show with live debounced results
-- 🔎 **Fuzzy search suggestions** — typo-tolerant autocomplete powered by Fuse.js
-- 🎬📺 **Media type toggle** — switch between Movies and TV Shows mode; trending, popular, and search all follow the toggle
-- 🌍 **Streaming availability** — see every country where a title is available to stream (rent/buy excluded)
-- 📺 **Provider breakdown** — click a country to see which streaming services carry it (Netflix, Disney+, etc.), grouped by Stream / Free / Free with Ads
-- 🔴 **Netflix filter** — one-click button to highlight or filter to only the countries where the title is on Netflix
-- 🧠 **Recommendations** — view similar titles when viewing a movie or show's details
-- 🕐 **Recently Viewed** — quickly access your last-viewed titles (stored locally)
-- 🔗 **Shareable URLs** — hash-based routing lets you share or bookmark a specific title
-
-## Architecture
-
-All TMDB API calls are routed through a Spring Boot proxy server rather than calling TMDB directly from the browser. The proxy adds **response caching** (Caffeine, with TTLs from 30 min to 24 hrs depending on endpoint), **rate limiting** (Bucket4j, 40 req/sec per IP), and **automatic retries** with exponential backoff on rate-limit responses.
-
-```
-React (GitHub Pages)  →  Spring Boot Proxy (Render)  →  TMDB API
-```
+A movie and TV show discovery app that lets you search titles, see where they're streaming worldwide, and browse recommendations. Built with Astro for server-rendered performance and React islands for interactivity.
 
 ## Tech Stack
 
-### Frontend
+- **Astro 5** with SSR (Node adapter) for server-rendered pages
+- **React 19** islands for interactive UI (search, country selector, provider discovery)
+- **Tailwind CSS 4** + **shadcn/ui** (Radix primitives) for styling
+- **Fuse.js** for client-side fuzzy search suggestions
+- **TMDB API** as the data source
 
-- [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- [Vite](https://vite.dev/) for bundling and dev server
-- [Axios](https://axios-http.com/) for API requests
-- [Fuse.js](https://www.fusejs.io/) for fuzzy search suggestions
+## Project Structure
 
-### Backend
+```
+client/
+  src/
+    pages/
+      index.astro                 # Home — search, recently viewed, provider discovery
+      movie/[id].astro            # Movie detail — SSR with providers & recommendations
+      tv/[id].astro               # TV detail — same structure
+      api/tmdb/[...path].ts       # API proxy — whitelisted TMDB proxy for React islands
+    components/
+      Header.astro, MovieCard.astro, MovieGrid.astro, ...   # Zero-JS display components
+      islands/
+        SearchIsland.tsx           # Fuzzy search with debounced corpus population
+        CountrySelectorIsland.tsx  # Country/continent picker with streaming providers
+        ProviderDiscoverIsland.tsx # Browse top titles by streaming service
+        RecentlyViewedIsland.tsx   # localStorage-backed recent history
+        RecordViewIsland.tsx       # Invisible island that records page views
+    hooks/                        # React hooks for search, discover, recently viewed
+    lib/
+      tmdb.ts                     # Server-side TMDB fetch (API key stays on server)
+      tmdb-client.ts              # Client-side fetch via /api/tmdb proxy
+      types/tmdb.ts               # Shared TypeScript types
+      utils/                      # Country names, continents, country detection
+    layouts/main.astro            # Base HTML shell with dark theme
+    styles/global.css             # Tailwind + shadcn theme overrides
+```
 
-- Java 25 + [Spring Boot 4.0.5](https://spring.io/projects/spring-boot) (Gradle)
-- [Caffeine](https://github.com/ben-manes/caffeine) for response caching
-- [Bucket4j](https://bucket4j.com/) for rate limiting
-- Spring Framework's built-in [resilience annotations](https://docs.spring.io/spring-framework/reference/core/resilience.html) for retry with exponential backoff
-- Docker for containerized deployment
+## Architecture
 
-## Getting Started
+**Server-side rendering** — Detail pages fetch movie data, streaming providers, and recommendations from TMDB during server rendering. The API key never reaches the client.
+
+**React islands** — Only interactive parts ship JavaScript: search (with fuzzy suggestions), country/provider selection, and localStorage-backed recently viewed. Everything else is zero-JS Astro components.
+
+**API proxy** — React islands that need dynamic data fetch through `/api/tmdb/[...path]`, a whitelisted catch-all route that forwards requests to TMDB with the server-side API key.
+
+## Setup
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) (frontend)
-- Java 25+ (backend)
-- A free TMDB API read access token from [TMDB settings](https://www.themoviedb.org/settings/api) — use the **Bearer token** (JWT), not the short v3 API key
+- [Bun](https://bun.sh/) (or Node.js 18+)
+- A [TMDB API](https://developer.themoviedb.org/) bearer token
 
-### 1. Start the backend
-
-```bash
-cd server
-```
-
-Create `src/main/resources/application-local.yaml` (gitignored):
-
-```yaml
-tmdb:
-  api-key: "your_tmdb_bearer_token"
-```
-
-Then run:
-
-```bash
-./gradlew bootRun --args='--spring.profiles.active=local'
-```
-
-The server starts on `http://localhost:8080`.
-
-### 2. Start the frontend
+### Install & Run
 
 ```bash
 cd client
 bun install
+```
+
+Create `client/.env`:
+
+```
+TMDB_API_KEY=<your TMDB bearer token>
+PUBLIC_TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p
+```
+
+Start the dev server:
+
+```bash
 bun run dev
 ```
 
-Then open [http://localhost:5173](http://localhost:5173). Vite automatically proxies `/api/tmdb` requests to the local backend.
+Open [http://localhost:4321](http://localhost:4321).
 
-## Code Quality
+### Build for Production
 
-- **ESLint** + **Prettier** for frontend linting and formatting
-- **Husky** + **lint-staged** pre-commit hook — staged files are automatically formatted before every commit
-- **Spotless** for backend Java formatting (`./gradlew spotlessApply`)
+```bash
+bun run build
+node dist/server/entry.mjs
+```
+
+### Other Commands
+
+| Command | Description |
+|---------|-------------|
+| `bun run lint` | ESLint |
+| `bun run format` | Prettier |
+| `bun run typecheck` | Astro type checking |
