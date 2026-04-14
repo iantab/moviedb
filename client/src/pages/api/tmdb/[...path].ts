@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro"
+import { env } from "cloudflare:workers"
 
 const ALLOWED_PATTERNS = [
   /^\/search\/(movie|tv)$/,
@@ -28,7 +29,7 @@ export const GET: APIRoute = async ({ params, url }) => {
 
   const res = await fetch(tmdbUrl.toString(), {
     headers: {
-      Authorization: `Bearer ${import.meta.env.TMDB_API_KEY}`,
+      Authorization: `Bearer ${env.TMDB_API_KEY}`,
       Accept: "application/json",
     },
   })

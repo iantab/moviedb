@@ -1,3 +1,5 @@
+import { env } from "cloudflare:workers"
+
 const TMDB_BASE_URL = "https://api.themoviedb.org/3"
 
 export const IMAGE_BASE_URL = import.meta.env
@@ -16,7 +18,7 @@ export async function tmdbFetch<T = unknown>(
 
   const res = await fetch(url.toString(), {
     headers: {
-      Authorization: `Bearer ${import.meta.env.TMDB_API_KEY}`,
+      Authorization: `Bearer ${env.TMDB_API_KEY}`,
       Accept: "application/json",
     },
   })

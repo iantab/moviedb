@@ -26,15 +26,6 @@ jobs:
           PUBLIC_TMDB_IMAGE_BASE_URL: ${{ secrets.PUBLIC_TMDB_IMAGE_BASE_URL }}
         run: bun run build
 
-      - name: Create Cloudflare Pages project
-        uses: cloudflare/wrangler-action@v3
-        continue-on-error: true
-        with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          command: pages project create streamscout --production-branch=master
-          workingDirectory: client
-
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
