@@ -22,7 +22,6 @@ jobs:
       - name: Build
         working-directory: client
         env:
-          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           PUBLIC_TMDB_IMAGE_BASE_URL: ${{ secrets.PUBLIC_TMDB_IMAGE_BASE_URL }}
         run: bun run build
 
