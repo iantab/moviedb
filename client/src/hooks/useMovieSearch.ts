@@ -1,94 +1,88 @@
-import { useState, useCallback, useRef } from "react";
-import tmdbClient from "../services/tmdb";
-import type { MediaItem, MediaType } from "../types/tmdb";
+import { useState, useCallback, useRef } from "react"
+import { tmdbClientFetch } from "@/lib/tmdb-client"
+import type { MediaItem, MediaType } from "@/lib/types/tmdb"
 
-type Corpus = Record<MediaType, MediaItem[]>;
+type Corpus = Record<MediaType, MediaItem[]>
 
 export function mergeIntoCorpus(
   prev: Corpus,
   mediaType: MediaType,
-  items: MediaItem[],
+  items: MediaItem[]
 ): Corpus {
-  const existingIds = new Set(prev[mediaType].map((i) => i.id));
-  const newItems = items.filter((i) => !existingIds.has(i.id));
-  if (!newItems.length) return prev;
-  return { ...prev, [mediaType]: [...prev[mediaType], ...newItems] };
+  const existingIds = new Set(prev[mediaType].map((i) => i.id))
+  const newItems = items.filter((i) => !existingIds.has(i.id))
+  if (!newItems.length) return prev
+  return { ...prev, [mediaType]: [...prev[mediaType], ...newItems] }
 }
 
 export function useMovieSearch() {
-  const [results, setResults] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // Corpus is split by media type so movie and TV results never mix
-  const [corpus, setCorpus] = useState<Corpus>({ movie: [], tv: [] });
-  const cancelledRef = useRef(false);
+  const [results, setResults] = useState<MediaItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [corpus, setCorpus] = useState<Corpus>({ movie: [], tv: [] })
+  const cancelledRef = useRef(false)
 
   const search = useCallback((query: string, mediaType: MediaType) => {
     if (!query.trim()) {
-      setResults([]);
-      return;
+      setResults([])
+      return
     }
-    cancelledRef.current = false;
-    setLoading(true);
-    setError(null);
-    const endpoint = mediaType === "tv" ? "/search/tv" : "/search/movie";
-    console.log(
-      `[TMDB API] search/${mediaType === "tv" ? "tv" : "movie"} — query: "${query}"`,
-    );
-    tmdbClient
-      .get(endpoint, {
-        params: { query, include_adult: false, language: "en-US", page: 1 },
-      })
-      .then((res) => {
+    cancelledRef.current = false
+    setLoading(true)
+    setError(null)
+    const endpoint = mediaType === "tv" ? "/search/tv" : "/search/movie"
+    tmdbClientFetch<{ results: MediaItem[] }>(endpoint, {
+      query,
+      include_adult: false,
+      language: "en-US",
+      page: 1,
+    })
+      .then((data) => {
         if (!cancelledRef.current) {
-          const items: MediaItem[] = res.data.results;
-          setResults(items);
-          setCorpus((prev) => mergeIntoCorpus(prev, mediaType, items));
+          const items = data.results
+          setResults(items)
+          setCorpus((prev) => mergeIntoCorpus(prev, mediaType, items))
         }
       })
       .catch((err: unknown) => {
         if (!cancelledRef.current)
-          setError(err instanceof Error ? err.message : "Search failed");
+          setError(err instanceof Error ? err.message : "Search failed")
       })
       .finally(() => {
-        if (!cancelledRef.current) setLoading(false);
-      });
-  }, []);
+        if (!cancelledRef.current) setLoading(false)
+      })
+  }, [])
 
   const cancel = useCallback(() => {
-    cancelledRef.current = true;
-  }, []);
+    cancelledRef.current = true
+  }, [])
 
   const clear = useCallback(() => {
-    setResults([]);
-    setError(null);
-  }, []);
+    setResults([])
+    setError(null)
+  }, [])
 
-  // Silently fetches into the correct corpus slice — does not touch results/loading/error.
   const populateCorpus = useCallback((query: string, mediaType: MediaType) => {
-    if (!query.trim()) return;
-    const endpoint = mediaType === "tv" ? "/search/tv" : "/search/movie";
-    console.log(
-      `[TMDB API] populateCorpus/${mediaType === "tv" ? "tv" : "movie"} — query: "${query}"`,
-    );
-    tmdbClient
-      .get(endpoint, {
-        params: { query, include_adult: false, language: "en-US", page: 1 },
-      })
-      .then((res) => {
-        const items: MediaItem[] = res.data.results;
-        setCorpus((prev) => mergeIntoCorpus(prev, mediaType, items));
+    if (!query.trim()) return
+    const endpoint = mediaType === "tv" ? "/search/tv" : "/search/movie"
+    tmdbClientFetch<{ results: MediaItem[] }>(endpoint, {
+      query,
+      include_adult: false,
+      language: "en-US",
+      page: 1,
+    })
+      .then((data) => {
+        setCorpus((prev) => mergeIntoCorpus(prev, mediaType, data.results))
       })
       .catch(() => {
-        // silently ignore — this is just suggestion pre-fetching
-      });
-  }, []);
+        // silently ignore — suggestion pre-fetching
+      })
+  }, [])
 
-  // Return the corpus slice for the given media type
   const getCorpusFor = useCallback(
     (mediaType: MediaType) => corpus[mediaType],
-    [corpus],
-  );
+    [corpus]
+  )
 
   return {
     results,
@@ -99,5 +93,5 @@ export function useMovieSearch() {
     populateCorpus,
     clear,
     cancel,
-  };
+  }
 }

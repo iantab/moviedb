@@ -1,0 +1,26 @@
+---
+import Layout from "@/layouts/main.astro"
+import Header from "@/components/Header.astro"
+import MediaToggle from "@/components/MediaToggle.astro"
+import SearchIsland from "@/components/islands/SearchIsland"
+import RecentlyViewedIsland from "@/components/islands/RecentlyViewedIsland"
+import ProviderDiscoverIsland from "@/components/islands/ProviderDiscoverIsland"
+import type { MediaType } from "@/lib/types/tmdb"
+
+const typeParam = Astro.url.searchParams.get("type")
+const mediaType: MediaType = typeParam === "tv" ? "tv" : "movie"
+---
+
+<Layout>
+  <Header>
+    <MediaToggle slot="toggle" active={mediaType} />
+    <SearchIsland mediaType={mediaType} client:load />
+  </Header>
+
+  <main class="mx-auto w-full max-w-[1280px] flex-1 p-8">
+    <div class="flex flex-col gap-10">
+      <RecentlyViewedIsland client:load />
+      <ProviderDiscoverIsland mediaType={mediaType} client:visible />
+    </div>
+  </main>
+</Layout>

@@ -1,0 +1,52 @@
+---
+import type { MediaItem, MediaType } from "@/lib/types/tmdb"
+import { getTitle, getReleaseYear } from "@/lib/types/tmdb"
+import { IMAGE_BASE_URL } from "@/lib/tmdb"
+
+interface Props {
+  item: MediaItem
+  mediaType: MediaType
+}
+
+const { item, mediaType } = Astro.props
+const href = `/${mediaType}/${item.id}`
+const posterUrl = item.poster_path
+  ? `${IMAGE_BASE_URL}/w185${item.poster_path}`
+  : null
+const title = getTitle(item)
+const year = getReleaseYear(item)
+const rating = item.vote_average ? item.vote_average.toFixed(1) : "?"
+---
+
+<a
+  href={href}
+  class="group block overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 transition-all hover:-translate-y-1 hover:shadow-lg hover:ring-primary/40"
+>
+  <div class="aspect-[2/3]">
+    {
+      posterUrl ? (
+        <img
+          src={posterUrl}
+          alt={title}
+          loading="lazy"
+          class="h-full w-full object-cover"
+        />
+      ) : (
+        <div class="flex h-full w-full items-center justify-center bg-muted text-4xl text-muted-foreground">
+          🎬
+        </div>
+      )
+    }
+  </div>
+  <div class="px-3 py-2.5">
+    <h3
+      class="mb-1 line-clamp-2 text-[0.82rem] leading-tight font-medium text-card-foreground"
+    >
+      {title}
+    </h3>
+    <div class="flex justify-between text-xs text-muted-foreground">
+      <span>{year}</span>
+      <span>⭐ {rating}</span>
+    </div>
+  </div>
+</a>

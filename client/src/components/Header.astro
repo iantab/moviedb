@@ -1,0 +1,24 @@
+---
+
+---
+
+<header
+  class="sticky top-0 z-50 border-b border-border/60 bg-gradient-to-br from-card to-[#16213e] px-6 py-3 backdrop-blur-md"
+>
+  <div
+    class="mx-auto flex max-w-[1280px] flex-wrap items-center gap-x-6 gap-y-3"
+  >
+    <a
+      href="/"
+      class="shrink-0 text-lg font-bold tracking-tight whitespace-nowrap text-white"
+    >
+      StreamScout
+    </a>
+    <div class="flex shrink-0 items-center gap-4">
+      <slot name="toggle" />
+    </div>
+    <div class="min-w-0 flex-1 basis-[300px]">
+      <slot />
+    </div>
+  </div>
+</header>

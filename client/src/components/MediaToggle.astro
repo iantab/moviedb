@@ -1,0 +1,33 @@
+---
+import type { MediaType } from "@/lib/types/tmdb"
+
+interface Props {
+  active: MediaType
+}
+
+const { active } = Astro.props
+
+const items: { type: MediaType; label: string }[] = [
+  { type: "movie", label: "🎬 Movies" },
+  { type: "tv", label: "📺 TV Shows" },
+]
+---
+
+<div class="inline-flex shrink-0 items-center gap-0 rounded-lg" role="group">
+  {
+    items.map(({ type, label }, i) => (
+      <a
+        href={`/?type=${type}`}
+        class:list={[
+          "inline-flex h-8 items-center justify-center px-3 text-sm font-medium whitespace-nowrap transition-all outline-none select-none",
+          i === 0 ? "rounded-l-lg" : "rounded-r-lg",
+          active === type
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+        ]}
+      >
+        {label}
+      </a>
+    ))
+  }
+</div>

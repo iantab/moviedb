@@ -1,0 +1,162 @@
+---
+import Layout from "@/layouts/main.astro"
+import Header from "@/components/Header.astro"
+import MediaToggle from "@/components/MediaToggle.astro"
+import MovieCard from "@/components/MovieCard.astro"
+import ScrollRow from "@/components/ScrollRow.astro"
+import ErrorMessage from "@/components/ErrorMessage.astro"
+import SearchIsland from "@/components/islands/SearchIsland"
+import CountrySelectorIsland from "@/components/islands/CountrySelectorIsland"
+import RecordViewIsland from "@/components/islands/RecordViewIsland"
+import { tmdbFetch, IMAGE_BASE_URL } from "@/lib/tmdb"
+import type { TvShow, MediaItem, WatchProvidersResult } from "@/lib/types/tmdb"
+
+const NETFLIX_ID = 8
+
+const { id } = Astro.params
+
+let show: TvShow | null = null
+let providers: WatchProvidersResult | null = null
+let recommendations: MediaItem[] = []
+let fetchError: string | null = null
+
+try {
+  const [showData, providerData, recData] = await Promise.all([
+    tmdbFetch<TvShow>(`/tv/${id}`),
+    tmdbFetch<WatchProvidersResult>(`/tv/${id}/watch/providers`),
+    tmdbFetch<{ results: MediaItem[] }>(`/tv/${id}/recommendations`),
+  ])
+  show = showData
+  providers = providerData
+  recommendations = recData.results.slice(0, 10)
+} catch {
+  fetchError = "Failed to load TV show details. Please try again."
+}
+
+if (!show && !fetchError) {
+  return Astro.redirect("/")
+}
+
+const title = show?.name ?? "TV Show"
+const year = show?.first_air_date?.slice(0, 4) ?? "N/A"
+const rating = show?.vote_average ? show.vote_average.toFixed(1) : "?"
+const backdropUrl = show?.backdrop_path
+  ? `${IMAGE_BASE_URL}/w780${show.backdrop_path}`
+  : null
+const posterUrl = show?.poster_path
+  ? `${IMAGE_BASE_URL}/w342${show.poster_path}`
+  : null
+
+const availableCountries = providers
+  ? Object.keys(providers.results).filter((code) => {
+      const p = providers!.results[code]
+      return p.flatrate?.length || p.free?.length || p.ads?.length
+    })
+  : []
+
+const netflixCountries = providers
+  ? Object.keys(providers.results).filter((code) =>
+      providers!.results[code].flatrate?.some(
+        (p) => p.provider_id === NETFLIX_ID
+      )
+    )
+  : []
+
+const acceptLang = Astro.request.headers.get("accept-language") ?? ""
+const langMatch = acceptLang.match(/[a-z]{2}-([A-Z]{2})/)
+const detectedCountry = langMatch?.[1] ?? "US"
+
+Astro.response.headers.set("Cache-Control", "public, max-age=300")
+---
+
+<Layout title={`${title} — StreamScout`}>
+  <Header>
+    <MediaToggle slot="toggle" active="tv" />
+    <SearchIsland mediaType="tv" client:load />
+  </Header>
+
+  <main class="mx-auto w-full max-w-[1280px] flex-1 p-8">
+    {
+      fetchError ? (
+        <ErrorMessage message={fetchError} />
+      ) : show ? (
+        <div class="relative overflow-hidden rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10">
+          {/* Backdrop — fixed height, fades into card */}
+          {backdropUrl && (
+            <div
+              class="pointer-events-none absolute top-0 right-0 left-0 h-[400px] bg-cover bg-center opacity-[0.12]"
+              style={`background-image: url(${backdropUrl}); mask-image: linear-gradient(to bottom, black 60%, transparent); -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent);`}
+            />
+          )}
+
+          <div class="relative z-[1] p-8">
+            <a
+              href="/?type=tv"
+              class="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Back to home"
+            >
+              ← Back
+            </a>
+
+            <div class="mb-8 flex items-start gap-6 max-md:flex-col">
+              {posterUrl && (
+                <img
+                  src={posterUrl}
+                  alt={title}
+                  class="w-40 min-w-[160px] rounded-xl shadow-[0_8px_24px_#00000088] max-md:w-[120px] max-md:min-w-[120px]"
+                  loading="lazy"
+                />
+              )}
+              <div class="flex-1">
+                <h2 class="mb-1.5 text-2xl leading-tight font-bold">{title}</h2>
+                <p class="mb-1 text-sm text-muted-foreground">{year}</p>
+                <p class="mb-1 text-sm text-muted-foreground">
+                  ⭐ {rating} / 10
+                </p>
+                <p class="mt-3 text-sm leading-relaxed text-foreground/75">
+                  {show.overview || "No overview available."}
+                </p>
+              </div>
+            </div>
+
+            <hr class="h-px w-full shrink-0 border-none bg-border" />
+
+            <div class="pt-6">
+              {availableCountries.length === 0 ? (
+                <p class="text-sm text-muted-foreground">
+                  No streaming data available for this show.
+                </p>
+              ) : (
+                <CountrySelectorIsland
+                  client:load
+                  availableCountries={availableCountries}
+                  netflixCountries={netflixCountries}
+                  providers={providers!.results}
+                  defaultCountry={detectedCountry}
+                />
+              )}
+            </div>
+
+            {recommendations.length > 0 && (
+              <>
+                <hr class="mt-6 h-px w-full shrink-0 border-none bg-border" />
+                <div class="pt-6">
+                  <h3 class="mb-4 text-base font-semibold text-[#c0b8f0]">
+                    Recommendations
+                  </h3>
+                  <ScrollRow>
+                    {recommendations.map((rec) => (
+                      <MovieCard item={rec} mediaType="tv" />
+                    ))}
+                  </ScrollRow>
+                </div>
+              </>
+            )}
+          </div>
+
+          <RecordViewIsland client:load item={show} mediaType="tv" />
+        </div>
+      ) : null
+    }
+  </main>
+</Layout>

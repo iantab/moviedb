@@ -1,39 +1,43 @@
-import { useState, useCallback } from "react";
-import type { MediaItem, MediaType } from "../types/tmdb";
+import { useState, useCallback, useEffect } from "react"
+import type { MediaItem, MediaType } from "@/lib/types/tmdb"
 
-const STORAGE_KEY = "streamscout-recently-viewed";
-const MAX_ITEMS = 20;
+const STORAGE_KEY = "streamscout-recently-viewed"
+const MAX_ITEMS = 20
 
 export interface RecentEntry {
-  item: MediaItem;
-  mediaType: MediaType;
+  item: MediaItem
+  mediaType: MediaType
 }
 
 function loadFromStorage(): RecentEntry[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
   } catch {
-    return [];
+    return []
   }
 }
 
 export function useRecentlyViewed() {
-  const [recentItems, setRecentItems] =
-    useState<RecentEntry[]>(loadFromStorage);
+  // Start empty to match SSR, then hydrate from localStorage
+  const [recentItems, setRecentItems] = useState<RecentEntry[]>([])
+
+  useEffect(() => {
+    setRecentItems(loadFromStorage())
+  }, [])
 
   const addItem = useCallback((item: MediaItem, mediaType: MediaType) => {
     setRecentItems((prev) => {
       const filtered = prev.filter(
-        (e) => !(e.item.id === item.id && e.mediaType === mediaType),
-      );
-      const next = [{ item, mediaType }, ...filtered].slice(0, MAX_ITEMS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
-    });
-  }, []);
+        (e) => !(e.item.id === item.id && e.mediaType === mediaType)
+      )
+      const next = [{ item, mediaType }, ...filtered].slice(0, MAX_ITEMS)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+  }, [])
 
-  return { recentItems, addItem };
+  return { recentItems, addItem }
 }

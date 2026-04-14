@@ -1,0 +1,21 @@
+---
+interface Props {
+  count?: number
+}
+
+const { count = 10 } = Astro.props
+---
+
+<div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-5">
+  {
+    Array.from({ length: count }).map(() => (
+      <div class="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+        <div class="aspect-[2/3] animate-pulse rounded-md bg-muted" />
+        <div class="space-y-2 px-3 py-2.5">
+          <div class="h-3 animate-pulse rounded-md bg-muted" />
+          <div class="h-2.5 w-2/3 animate-pulse rounded-md bg-muted" />
+        </div>
+      </div>
+    ))
+  }
+</div>

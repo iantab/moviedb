@@ -1,0 +1,15 @@
+---
+import type { MediaItem, MediaType } from "@/lib/types/tmdb"
+import MovieCard from "./MovieCard.astro"
+
+interface Props {
+  items: MediaItem[]
+  mediaType: MediaType
+}
+
+const { items, mediaType } = Astro.props
+---
+
+<div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-5">
+  {items.map((item) => <MovieCard item={item} mediaType={mediaType} />)}
+</div>

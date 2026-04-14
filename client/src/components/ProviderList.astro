@@ -1,0 +1,67 @@
+---
+import type { CountryProviders, WatchProvider } from "@/lib/types/tmdb"
+import { IMAGE_BASE_URL } from "@/lib/tmdb"
+
+interface Props {
+  countryCode: string
+  providers: CountryProviders
+}
+
+const { countryCode, providers } = Astro.props
+
+const groups: { label: string; items: WatchProvider[] }[] = []
+if (providers.flatrate?.length)
+  groups.push({ label: "Stream", items: providers.flatrate })
+if (providers.free?.length)
+  groups.push({ label: "Free", items: providers.free })
+if (providers.ads?.length)
+  groups.push({ label: "Free with Ads", items: providers.ads })
+
+const hasAny = groups.length > 0
+---
+
+<div>
+  <a
+    href={providers.link}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="mb-4 inline-block text-sm text-primary hover:underline"
+  >
+    View on TMDB ({countryCode})
+  </a>
+
+  {
+    !hasAny && (
+      <p class="text-sm text-muted-foreground">
+        No streaming data available for this country.
+      </p>
+    )
+  }
+
+  {
+    groups.map(({ label, items }) => (
+      <div class="mb-5">
+        <h4 class="mb-2.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+          {label}
+        </h4>
+        <div class="flex flex-wrap gap-3">
+          {items.map((p) => (
+            <div
+              class="flex w-[72px] flex-col items-center gap-1"
+              title={p.provider_name}
+            >
+              <img
+                src={`${IMAGE_BASE_URL}/w45${p.logo_path}`}
+                alt={p.provider_name}
+                class="h-12 w-12 rounded-[10px] object-cover shadow-md"
+              />
+              <span class="text-center text-[0.68rem] leading-tight break-words text-muted-foreground">
+                {p.provider_name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))
+  }
+</div>
